@@ -1,23 +1,9 @@
-from enum import Enum
+from AbstractCarWash import AbstractCarWash
+from Enums import BoxStatus,BoxWashMode,PaymentType 
 
-class BoxStatus(Enum) :
-    FREE = "Свободен"
-    BUSY = "Занят"
-    MAINTANCE = "На обслуживании"
-
-class BoxWashMode(Enum) :
-    WATER = "Мойка водой"
-    FOAM = "Мойка пеной"
-    WAX = "Защита воском"
-
-class StandartWashBox :
+class StandartWashBox(AbstractCarWash) : 
     def __init__(self, id: int, adress: str, box_number: int, curr_foam: float = None, curr_wax: float = None):
-
-        self.car_wash_Id = id 
-        self.car_was_Adress = adress
-        self.box_number = box_number
-        self.box_status = BoxStatus.FREE
-
+        super().__init__(id, adress, box_number)
         # Константы максимальная вместимость баков
         self.MAX_FOAM = 50.0
         self.MAX_WAX = 10.0
@@ -32,14 +18,6 @@ class StandartWashBox :
         self.current_foam = curr_foam if curr_foam is not None else self.MAX_FOAM
         self.current_wax = curr_wax if curr_wax is not None else self.MAX_WAX
 
-    # Метод получение текущего состояния бокса
-    def get_status_report(self) -> dict[str, any] :
-        return {
-            "Box_Number": self.box_number,
-            "Current_Foam": self.current_foam,
-            "Current_Wax": self.current_wax,
-            "Status": self.box_status
-        }
     # Метод залития мыла в баки
     def restock_foam(self, foam_liters: float) -> dict[str, any] :
         self.current_foam += foam_liters
@@ -68,25 +46,12 @@ class StandartWashBox :
             "Current_Wax": self.current_wax,
             "Status": self.box_status
         }
-    # Метод перевода бокса в состояние ремонта
-    def set_maintance_status(self) -> dict[str, any] :
-        self.box_status = BoxStatus.MAINTANCE
-        return{
-            "Box_Number": self.box_number,
-            "Status": self.box_status
-        }
-    # Метод перевода бокса в состояние свободен
-    def finish_maintance_status(self) -> dict[str, any] :
-        self.box_status = BoxStatus.FREE
-        return{
-            "Box_Number": self.box_number,
-            "Box_Status": self.box_status
-        }
     # Метод начала мойки машины
-    def start_wash_session(self, mode: BoxWashMode, duration_seconds: int) -> dict[str, any]:
+    def start_wash_session(self, mode: BoxWashMode, duration_seconds: int,payment_type: PaymentType, user_balance: float) -> dict[str, any]:
         if mode == BoxWashMode.WATER : 
             self.box_status = BoxStatus.BUSY
             price = duration_seconds * self.TARIFF_WATER_PER_SEC
+            payment_result = self.process_payment(amount=price, payment_type = payment_type, balance = user_balance)
             return{
                 "Box_Number": self.box_number,
                 "Status": self.box_status,
