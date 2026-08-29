@@ -12,5 +12,4 @@ class BoxWashMode(Enum) :
 
 class PaymentType(Enum) :
     CASH = "Наличные"
-    TERMINAL = "Терминал"
     APP = "Приложение"
