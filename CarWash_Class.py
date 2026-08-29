@@ -25,8 +25,8 @@ class StandartWashBox(AbstractCarWash) :
         self.box_status = BoxStatus.MAINTANCE
 
         if self.current_foam > self.MAX_FOAM:
-            print("Ошибка, залито слишком много пены!")
-            return
+            print("Ошибка, залито слишком много пены! Излишки пены слиты через аварийный клапан.")
+            self.current_foam = self.MAX_FOAM
 
         return{
             "Box_Number": self.box_number,
@@ -39,8 +39,8 @@ class StandartWashBox(AbstractCarWash) :
         self.box_status = BoxStatus.MAINTANCE
 
         if self.current_wax > self.MAX_WAX :
-            print("Ошибка, залито слишком много воска!")
-            return
+            print("Ошибка, залито слишком много воска! Излишки воска слиты через аварийный клапан.")
+            self.current_wax = self.MAX_WAX
 
         return{
             "Box_Number": self.box_number,
@@ -106,7 +106,7 @@ class StandartWashBox(AbstractCarWash) :
 
         except ValueError as error:
             # Мойка прервалась аварийно (закончились деньги или химия)
-            print(f"\n[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
+            print(f"[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
             
             # Считаем цену за то время, которое клиент УСПЕЛ отмыть
             final_price = seconds_passed * tariff
@@ -186,7 +186,7 @@ class StandartWashBox(AbstractCarWash) :
 
         except ValueError as error:
             # Мойка прервалась аварийно (закончились деньги или химия)
-            print(f"\n[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
+            print(f"[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
             
             # Считаем цену за то время, которое клиент УСПЕЛ отмыть
             final_price = seconds_passed * tariff
