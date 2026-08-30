@@ -50,7 +50,7 @@ class StandartWashBox(AbstractCarWash) :
     # Метод начала мойки машины 
 def start_wash_session(self, mode: ResourceType, payment_type: PaymentType,
                        user: User = None, duration_seconds: int = 0,
-                       cash_amount: float = 0.0) -> dict[str, Any]:
+                       cash_amount: float = 0.0) -> dict[str, any]:
     """
     Универсальный метод запуска мойки.
     - payment_type=APP: требуется user и duration_seconds > 0.
