@@ -6,11 +6,11 @@ class BoxStatus(Enum) :
     MAINTANCE = "На обслуживании"
 
 class ResourceType(Enum) :
-    WATER = "Мойка водой"
-    FOAM = "Мойка пеной"
-    WAX = "Защита воском"
-    OSMOS = "Сушка осмосом"
-    SHAMPOO = "Мойка шампунем"
+    WATER = "вода"
+    FOAM = "пена"
+    WAX = "воск"
+    OSMOS = "осмос"
+    SHAMPOO = "шампунь"
 
 class PaymentType(Enum) :
     CASH = "Наличные"

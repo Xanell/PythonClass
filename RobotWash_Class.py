@@ -7,39 +7,35 @@ class RobotWashStation(AbstractCarWash):
     
     def __init__(self, id: int, adress: str, box_number: int):
         super().__init__(id, adress, box_number)
+        
+        # Ресурсы (cons)
+        self.WATER = 500.0      # литры 
+        self.OSMOS = 50.0       # литры
+        self.WAX = 5.0          # литры
+        self.SHAMPOO = 10.0     # литры
+        
+        # Режимы (расход)
 
-        # Инфо о станции
-        self.wash_status = WashStatus.FREE
+        # Экспресс (cons)
+        self.EXPRESS_WATER = 50
+        self.EXPRESS_SHAMPOO = 2
         
-        # Ресурсы
-        self.water = 500.0      # литры   # конс
-        self.osmos = 50.0       # литры
-        self.wax = 5.0          # литры
-        self.shampoo = 10.0     # литры
+        # Стандарт (cons)
+        self.STANDART_WATER = 70
+        self.STANDART_SHAMPOO = 3
+        self.STANDART_OSMOS = 20
         
-        # Режимы
-
-        # Экспресс
-        self.express_water = 50
-        self.express_shampoo = 2
-        
-        # Стандарт
-        self.standard_water = 70
-        self.standard_shampoo = 3
-        self.standard_osmos = 20
-        
-        # Премиум
-        self.premium_water = 120
-        self.premium_shampoo = 5
-        self.premium_osmos = 30
-        self.premium_wax = 3
+        # Премиум (cons)
+        self.PREMIUM_WATER = 120
+        self.PREMIUM_SHAMPOO = 5
+        self.PREMIUM_OSMOS = 30
+        self.PREMIUM_WAX = 3
         
         # Статистика
         self.total_washes = 0
         
         # История операций
         self.history = []
-    
 
     # Вспомогательные методы
 
@@ -64,22 +60,22 @@ class RobotWashStation(AbstractCarWash):
     # Хватит ли ресурсов для Экспресса?
     def check_express(self):
 
-        return self.water >= self.express_water and self.shampoo >= self.express_shampoo
+        return self.WATER >= self.EXPRESS_WATER and self.SHAMPOO >= self.EXPRESS_SHAMPOO
 
     # Хватит ли ресурсов для Стандарта?
     def check_standard(self):
 
-        return (self.water >= self.standard_water and 
-                self.shampoo >= self.standard_shampoo and 
-                self.osmos >= self.standard_osmos)
+        return (self.WATER >= self.STANDART_WATER and 
+                self.SHAMPOO >= self.STANDART_SHAMPOO and 
+                self.OSMOS >= self.STANDART_OSMOS)
 
     # Хватит ли ресурсов для Премиума?
     def check_premium(self):
 
-        return (self.water >= self.premium_water and 
-                self.shampoo >= self.premium_shampoo and 
-                self.osmos >= self.premium_osmos and 
-                self.wax >= self.premium_wax)
+        return (self.WATER >= self.PREMIUM_WATER and 
+                self.SHAMPOO >= self.PREMIUM_SHAMPOO and 
+                self.OSMOS >= self.PREMIUM_OSMOS and 
+                self.WAX >= self.PREMIUM_WAX)
 
     # Универсальная проверка ресурсов
     def check_resources(self, mode: WashMode) -> bool:
@@ -98,14 +94,14 @@ class RobotWashStation(AbstractCarWash):
     # Полная заправка всех ресурсов
     def full_refill(self):
 
-        self.wash_status = WashStatus.MAINTENANCE
+        self.wash_status = BoxStatus.MAINTANCE
         
-        self.water = 500.0
-        self.osmos = 50.0
-        self.wax = 5.0
-        self.shampoo = 10.0
+        self.WATER = 500.0
+        self.OSMOS = 50.0
+        self.WAX = 5.0
+        self.SHAMPOO = 10.0
         
-        self.wash_status = WashStatus.IDLE
+        self.wash_status = BoxStatus.FREE
         self.log_action("Сообщение", "Все ресурсы заправлены")
         print("Все ресурсы заправлены до максимума!")
 
@@ -113,13 +109,13 @@ class RobotWashStation(AbstractCarWash):
     def get_resource(self, resource: ResourceType) -> float:
 
         if resource == ResourceType.WATER:
-            return self.water
+            return self.WATER
         elif resource == ResourceType.OSMOS:
-            return self.osmos
+            return self.OSMOS
         elif resource == ResourceType.WAX:
-            return self.wax
+            return self.WAX
         elif resource == ResourceType.SHAMPOO:
-            return self.shampoo
+            return self.SHAMPOO
         return 0.0
 
     # Долив конкретного ресурса
@@ -140,23 +136,23 @@ class RobotWashStation(AbstractCarWash):
         
         # Доливаем
         if resource == ResourceType.WATER:
-            self.water += amount
+            self.WATER += amount
         elif resource == ResourceType.OSMOS:
-            self.osmos += amount
+            self.OSMOS += amount
         elif resource == ResourceType.WAX:
-            self.wax += amount
+            self.WAX += amount
         elif resource == ResourceType.SHAMPOO:
-            self.shampoo += amount
+            self.SHAMPOO += amount
         
-        self.log_action("Сообщение", f"Ресурс {resource.value} заправлен на {amount} л.")
+        self.log_action("Сообщение", f"Ресурс: {resource.value} заправлен на {amount} л.")
 
     # Показать все ресурсы
     def show_resources(self):
 
-        print(f"Вода: {self.water} л")
-        print(f"Осмос: {self.osmos} л")
-        print(f"Воск: {self.wax} л")
-        print(f"Шампунь: {self.shampoo} л")
+        print(f"Вода: {self.WATER} л")
+        print(f"Осмос: {self.OSMOS} л")
+        print(f"Воск: {self.WAX} л")
+        print(f"Шампунь: {self.SHAMPOO} л")
     
 
     # Методы для клиента =======================
@@ -165,9 +161,9 @@ class RobotWashStation(AbstractCarWash):
     def start_wash(self, mode: WashMode) -> dict:
         
         # Проверка статуса
-        if self.wash_status == WashStatus.MAINTENANCE:
+        if self.wash_status == BoxStatus.MAINTANCE:
             return {"Сообщение": "Станция на обслуживании!"}
-        if self.wash_status == WashStatus.BUSY:
+        if self.wash_status == BoxStatus.BUSY:
             return {"Сообщение": "Станция занята!"}
         
         # Получение параметров режима
@@ -189,28 +185,28 @@ class RobotWashStation(AbstractCarWash):
                 return {"Сообщение": "Недостаточно ресурсов для мойки! Обратитесь к технику!"}
         
         # Запуск цикла мойки
-        self.wash_status = WashStatus.BUSY
+        self.wash_status = BoxStatus.BUSY
         self.log_action("Сообщение", f"Начало {mode_name} мойки")
         
         # Списываем ресурсы
         if mode == WashMode.EXPRESS:
-            self.water -= self.express_water
-            self.shampoo -= self.express_shampoo
+            self.WATER -= self.EXPRESS_WATER
+            self.SHAMPOO -= self.EXPRESS_SHAMPOO
         elif mode == WashMode.STANDARD:
-            self.water -= self.standard_water
-            self.shampoo -= self.standard_shampoo
-            self.osmos -= self.standard_osmos
+            self.WATER -= self.STANDART_WATER
+            self.SHAMPOO -= self.STANDART_SHAMPOO
+            self.OSMOS -= self.STANDART_WATER
         elif mode == WashMode.PREMIUM:
-            self.water -= self.premium_water
-            self.shampoo -= self.premium_shampoo
-            self.osmos -= self.premium_osmos
-            self.wax -= self.premium_wax
+            self.WATER -= self.PREMIUM_WATER
+            self.SHAMPOO -= self.PREMIUM_SHAMPOO
+            self.OSMOS -= self.PREMIUM_OSMOS
+            self.WAX -= self.PREMIUM_WAX
         
         # Обновляем статистику
         self.total_washes += 1
 
         # Переводим статус
-        self.wash_status = WashStatus.IDLE
+        self.wash_status = BoxStatus.FREE
 
         # Запись в историю
         self.log_action("Сообщение", "Мойка завершена")
@@ -219,13 +215,13 @@ class RobotWashStation(AbstractCarWash):
     def get_statistics(self) -> dict:
 
         return {
-            "Номер станции": self.station_id,
-            "Адрес": self.location,
+            "Номер станции": self.car_wash_Id,
+            "Адрес": self.car_was_Adress,
             "Всего моек за день": self.total_washes,
-            "Остаток воды": self.water,
-            "Остаток осмоса": self.osmos,
-            "Остаток воска": self.wax,
-            "Остаток шампуня": self.shampoo,
+            "Остаток воды": self.WATER,
+            "Остаток осмоса": self.OSMOS,
+            "Остаток воска": self.WAX,
+            "Остаток шампуня": self.SHAMPOO,
             "Записей в истории": len(self.history)
         }
 
@@ -237,15 +233,15 @@ class RobotWashStation(AbstractCarWash):
             print(f"{key}: {value}")
 
 '''
-station = RobotWashStation(1, "д. Юркино, Солнечная ул. 7")
+station = RobotWashStation(1, "д. Юркино, Солнечная ул. 7", 2)
 
 
-station.wash_status = WashStatus.MAINTENANCE
+station.wash_status = BoxStatus.MAINTANCE
 print("Мойка на обслуживании!")
 station.full_refill()
 station.show_resources()
 
-station.wash_status = WashStatus.IDLE
+station.wash_status = BoxStatus.FREE
 print ("Мойка свободна")
 
 print("Доступные режимы:")
@@ -254,7 +250,7 @@ print(f"Стандарт - мойка")
 print(f"Премиум - мойка")
 
 
-print("Клиент 1: Иван, Экпресс - мойка")
+print("Клиент 1: Иван, Экcпресс - мойка")
 result = station.start_wash(WashMode.EXPRESS)
 
 print("Клиент 2 : Пётр, Стандартная мойка")
@@ -266,9 +262,11 @@ result = station.start_wash(WashMode.PREMIUM)
 print("Остатки ресурсов после моек")
 station.show_resources()
 '''
+
 '''
-station.refill_resource(ResourceType.WATER, 600)
+station.refill_resource(ResourceType.WATER, 10)
 '''
+
 '''
 station.full_refill()
 station.show_resources()
@@ -277,3 +275,4 @@ station.show_history()
 
 station.print_statistics()
 '''
+
