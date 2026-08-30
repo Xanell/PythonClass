@@ -1,15 +1,15 @@
 class User():
-    def __init__(self, user_id: int, name: str, initial_balance: float = 0.0):
+    def __init__(self, user_id: int, user_name: str, initial_balance: float = 0.0):
         self.user_id = user_id
-        self.user_name = name
+        self.user_name = user_name
         self.balance = initial_balance
 
     # Метод получения информации о пользователе
     def get_profile_report(self) -> dict[str, any]:
         return {
-            "User_Id": self.user_id,
-            "Customer_Name": self.name,
-            "Current_Balance": round(self.balance, 2)
+            "user_id": self.user_id,
+            "customer_name": self.user_name,
+            "current_balance": round(self.balance, 2)
         }
 
     # Метод добавления (пополнения) баланса к счету
@@ -21,6 +21,6 @@ class User():
         print(f"[БЭКЭНД]: Пользователь {self.name} пополнил счет на +{amount} руб.")
         
         return {
-            "Success": True,
-            "New_Balance": round(self.balance, 2)
+            "success": True,
+            "new_balance": round(self.balance, 2)
         }
