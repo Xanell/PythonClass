@@ -18,14 +18,14 @@ class AbstractCarWash:
             "Status": self.box_status
         }
     # Метод перевода бокса в состояние ремонта
-    def set_maintance_status(self) -> dict[str, any] :
+    def set_maintenance_status(self) -> dict[str, any] :
         self.box_status = BoxStatus.MAINTENANCE
         return{
             "Box_Number": self.box_number,
             "Status": self.box_status
         }
     # Метод перевода бокса в состояние свободен
-    def finish_maintance_status(self) -> dict[str, any] :
+    def finish_maintenance_status(self) -> dict[str, any] :
         self.box_status = BoxStatus.FREE
         return{
             "Box_Number": self.box_number,

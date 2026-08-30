@@ -3,8 +3,8 @@ from Enums import BoxStatus, ResourceType, PaymentType
 from User_Class import User
 
 class StandartWashBox(AbstractCarWash) : 
-    def __init__(self, id: int, adress: str, box_number: int, curr_foam: float = None, curr_wax: float = None):
-        super().__init__(id, adress, box_number)
+    def __init__(self, id: int, address: str, box_number: int, curr_foam: float = None, curr_wax: float = None):
+        super().__init__(id, address, box_number)
         # Константы максимальная вместимость баков
         self.MAX_FOAM = 50.0
         self.MAX_WAX = 10.0
@@ -48,7 +48,7 @@ class StandartWashBox(AbstractCarWash) :
             "Status": self.box_status
         }
     # Метод начала мойки машины при оплате через приложение
-    def start_wash_session_app_pay(self, mode: ResourceType, user: User = None, duration_seconds: int = 0) -> dict[str, any]:
+    def start_wash_session_app_pay(self, mode: ResourceType, user: User, duration_seconds: int = 0) -> dict[str, any]:
         # Проверка на доступность бокса
         if self.box_status != BoxStatus.FREE :
             raise ValueError(f"Бокс №{self.box_number}, недоступен!")
@@ -78,11 +78,11 @@ class StandartWashBox(AbstractCarWash) :
             while True:
                 # Проверяем баки с химией
                 if mode == ResourceType.FOAM and self.current_foam < consumption:
-                    self.set_maintance_status() # Уходим в ремонт
+                    self.set_maintenance_status() # Уходим в ремонт
                     raise ValueError("Ресурсы в баке пены закончились!")
                     
                 if mode == ResourceType.WAX and self.current_wax < consumption:
-                    self.set_maintance_status()
+                    self.set_maintenance_status()
                     raise ValueError("Ресурсы в баке воска закончились!")
 
                 # Проверяем баланс пользователя
@@ -161,11 +161,11 @@ class StandartWashBox(AbstractCarWash) :
             while True:
                 # Проверяем баки с химией
                 if mode == ResourceType.FOAM and self.current_foam < consumption:
-                    self.set_maintance_status() # Уходим в ремонт
+                    self.set_maintenance_status() # Уходим в ремонт
                     raise ValueError("Ресурсы в баке пены закончились!")
                     
                 if mode == ResourceType.WAX and self.current_wax < consumption:
-                    self.set_maintance_status()
+                    self.set_maintenance_status()
                     raise ValueError("Ресурсы в баке воска закончились!")
 
                 # Проверяем баланс пользователя
