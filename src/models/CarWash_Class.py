@@ -1,6 +1,6 @@
-from AbstractCarWash import AbstractCarWash
-from Enums import BoxStatus, ResourceType, PaymentType 
-from User_Class import User
+from src.core.AbstractCarWash import AbstractCarWash
+from src.config.Enums import BoxStatus, ResourceType, PaymentType 
+from src.User_Class import User
 
 class StandartWashBox(AbstractCarWash) : 
     def __init__(self, id: int, address: str, box_number: int, curr_foam: float = None, curr_wax: float = None):
@@ -19,13 +19,17 @@ class StandartWashBox(AbstractCarWash) :
         self.current_foam = curr_foam if curr_foam is not None else self.MAX_FOAM
         self.current_wax = curr_wax if curr_wax is not None else self.MAX_WAX
 
+    def get_error_history_log(self):
+        return self.error_history_log
+
     # Метод залития мыла в баки
     def restock_foam(self, foam_liters: float) -> dict[str, any] :
         self.current_foam += foam_liters
         self.set_maintenance_status()
 
         if self.current_foam > self.MAX_FOAM:
-            print("Ошибка, залито слишком много пены! Излишки пены слиты через аварийный клапан.")
+            error_msg = "Ошибка, залито слишком много пены! Излишки пены слиты через аварийный клапан."
+            self.add_error_history_log(error_msg)
             self.current_foam = self.MAX_FOAM
 
         return{
@@ -40,13 +44,20 @@ class StandartWashBox(AbstractCarWash) :
         self.set_maintenance_status()
 
         if self.current_wax > self.MAX_WAX :
-            print("Ошибка, залито слишком много воска! Излишки воска слиты через аварийный клапан.")
+            error_msg = "Ошибка, залито слишком много воска! Излишки воска слиты через аварийный клапан."
+            self.add_error_history_log(error_msg)
             self.current_wax = self.MAX_WAX
 
         return{
             "box_number": self.box_number,
             "current_wax": self.current_wax,
             "status": self.box_status
+        }
+
+    def get_resources(self) -> tuple:
+        return {
+            "current_foam": round(self.current_foam, 2),
+            "current_wax": round(self.current_wax, 2)
         }
     
     # Метод определения тарифа и траты ресурсов в зависимости от выбраного режима
@@ -93,7 +104,7 @@ class StandartWashBox(AbstractCarWash) :
         if cash_amount <= 0:
             raise ValueError("Внесённая сумма должна быть положительной")
 
-        # Метод начала мойки машины 
+    # Метод начала мойки машины 
     def start_wash_session(self, mode: ResourceType, payment_type: PaymentType, user: User = None, duration_seconds: int = 0, cash_amount: float = 0.0) -> dict[str, any]:
         """
         Универсальный метод запуска мойки.
@@ -141,7 +152,7 @@ class StandartWashBox(AbstractCarWash) :
                     break
                 # Для CASH выход только по исключению (когда закончатся деньги или ресурсы)
         except ValueError as error:
-            print(f"[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
+            self.add_error_history_log(error)
             final_price = seconds_passed * tariff
             if self.box_status == BoxStatus.BUSY:
                 self.box_status = BoxStatus.FREE
@@ -150,25 +161,22 @@ class StandartWashBox(AbstractCarWash) :
                     self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
                 else:
                     self.process_payment(amount=final_price, payment_type=PaymentType.CASH, user=None)
+            self.add_pay_history_log(final_price, seconds_passed)
             return {
                 "message": "Мойка принудительно остановлена",
                 "box_number": self.box_number,
                 "status": self.box_status,
                 "time": seconds_passed,
                 "total_price": round(final_price, 2),
-                "remaining_balance": round(user.balance, 2)
+                "remaining_balance": round(user.balance, 2) if user else None
             }
 
         # Успешное завершение
         final_price = seconds_passed * tariff
-        if payment_type == PaymentType.APP:
-            self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
-            remaining_balance = round(user.balance, 2)
-        else:
-            self.process_payment(amount=final_price, payment_type=PaymentType.CASH, user=None)
-            remaining_balance = None
-
+        self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
+        remaining_balance = round(user.balance, 2)
         self.box_status = BoxStatus.FREE
+        self.add_pay_history_log(final_price, seconds_passed)
         return {
             "message": "Мойка успешно завершена",
             "box_number": self.box_number,

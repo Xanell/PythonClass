@@ -1,15 +1,56 @@
-from Enums import BoxStatus, PaymentType 
-from User_Class import User
+from abc import ABC, abstractmethod
+from src.config.Enums import BoxStatus, PaymentType 
+from src.User_Class import User
 
-class AbstractCarWash: 
+class AbstractCarWash(ABC): 
     def __init__(self, id: int, address: str, box_number: int): 
         
         self.car_wash_Id = id 
-        self.car_was_address = address
+        self.car_wash_address = address
         self.box_number = box_number
         self.box_status = BoxStatus.FREE
         self.cash_box = 0.0
         self.total_revenue = 0.0
+        self.total_washes = 0
+        self.pay_history_log = {}
+        self.statistics_log = {}
+        self.error_history_log = []
+
+    @abstractmethod
+    def get_resources(self):
+        pass
+
+    @abstractmethod
+    def get_error_history_log(self):
+        pass
+
+    # Метод получения статистики по боксу
+    def get_statistics(self) -> dict:
+        return {
+            "box_number": self.box_number,
+            "address": self.car_wash_address,
+            "cash_box": self.cash_box,
+            "total_revenue": self.total_revenue,
+            "total_washes": self.total_washes,
+            "resources": self.get_resources(),
+            "errors": self.get_error_history_log()
+        }
+    
+    # Метод добавления ошибки в историю логов
+    def add_error_history_log(self, error: str) -> None:
+        self.error_history_log.append(error)
+
+    # Метод добавления оплаты в иторию логов
+    def add_pay_history_log(self, total_price: float, time_passed: int) -> None:
+        if self.box_number not in self.pay_history_log:
+            self.pay_history_log[self.box_number] = []
+        self.total_washes += 1
+        self.pay_history_log[self.box_number].append((total_price, time_passed))
+
+    # Метод получения истории оплат
+    def get_pay_history_log(self) -> dict:
+        return self.pay_history_log
+    
     # Метод получение текущего состояния бокса
     def get_status_report(self) -> dict[str, any] :
         return {

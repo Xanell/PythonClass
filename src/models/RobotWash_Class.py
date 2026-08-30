@@ -1,6 +1,6 @@
-from Enums import BoxStatus, ResourceType, WashMode
+from src.config.Enums import BoxStatus, ResourceType, WashMode
 import datetime
-from AbstractCarWash import AbstractCarWash
+from src.core.AbstractCarWash import AbstractCarWash
 
 # Основной класс
 class RobotWashStation(AbstractCarWash):
