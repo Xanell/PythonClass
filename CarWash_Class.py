@@ -1,5 +1,5 @@
 from AbstractCarWash import AbstractCarWash
-from Enums import BoxStatus, BoxWashMode, PaymentType 
+from Enums import BoxStatus, ResourceType, PaymentType 
 from User_Class import User
 
 class StandartWashBox(AbstractCarWash) : 
@@ -22,7 +22,7 @@ class StandartWashBox(AbstractCarWash) :
     # Метод залития мыла в баки
     def restock_foam(self, foam_liters: float) -> dict[str, any] :
         self.current_foam += foam_liters
-        self.box_status = BoxStatus.MAINTANCE
+        self.box_status = BoxStatus.MAINTENANCE
 
         if self.current_foam > self.MAX_FOAM:
             print("Ошибка, залито слишком много пены! Излишки пены слиты через аварийный клапан.")
@@ -36,7 +36,7 @@ class StandartWashBox(AbstractCarWash) :
     # Метод залития воска в баки
     def restock_wax(self, wax_liters: float) -> dict[str, any] :
         self.current_wax += wax_liters
-        self.box_status = BoxStatus.MAINTANCE
+        self.box_status = BoxStatus.MAINTENANCE
 
         if self.current_wax > self.MAX_WAX :
             print("Ошибка, залито слишком много воска! Излишки воска слиты через аварийный клапан.")
@@ -48,7 +48,7 @@ class StandartWashBox(AbstractCarWash) :
             "Status": self.box_status
         }
     # Метод начала мойки машины при оплате через приложение
-    def start_wash_session_app_pay(self, mode: BoxWashMode, user: User = None, duration_seconds: int = 0) -> dict[str, any]:
+    def start_wash_session_app_pay(self, mode: ResourceType, user: User = None, duration_seconds: int = 0) -> dict[str, any]:
         # Проверка на доступность бокса
         if self.box_status != BoxStatus.FREE :
             raise ValueError(f"Бокс №{self.box_number}, недоступен!")
@@ -61,10 +61,10 @@ class StandartWashBox(AbstractCarWash) :
         current_session_balance = user.balance
 
         # Проверка выбраного режима мойки
-        if mode == BoxWashMode.FOAM :
+        if mode == ResourceType.FOAM :
             tariff = self.TARIFF_FOAM_PER_SEC
             consumption = self.FOAM_CONSUMPTION_PER_SEC
-        elif mode == BoxWashMode.WAX :
+        elif mode == ResourceType.WAX :
             tariff = self.TARIFF_WAX_PER_SEC
             consumption = self.WAX_CONSUMPTION_PER_SEC
         else :
@@ -77,11 +77,11 @@ class StandartWashBox(AbstractCarWash) :
         try:
             while True:
                 # Проверяем баки с химией
-                if mode == BoxWashMode.FOAM and self.current_foam < consumption:
+                if mode == ResourceType.FOAM and self.current_foam < consumption:
                     self.set_maintance_status() # Уходим в ремонт
                     raise ValueError("Ресурсы в баке пены закончились!")
                     
-                if mode == BoxWashMode.WAX and self.current_wax < consumption:
+                if mode == ResourceType.WAX and self.current_wax < consumption:
                     self.set_maintance_status()
                     raise ValueError("Ресурсы в баке воска закончились!")
 
@@ -93,9 +93,9 @@ class StandartWashBox(AbstractCarWash) :
                 user.balance -= tariff
                 current_session_balance = user.balance
 
-                if mode == BoxWashMode.FOAM:
+                if mode == ResourceType.FOAM:
                     self.current_foam -= consumption
-                elif mode == BoxWashMode.WAX:
+                elif mode == ResourceType.WAX:
                     self.current_wax -= consumption
 
                 # Добавляем секунду работы для расчета финальной цены
@@ -136,19 +136,18 @@ class StandartWashBox(AbstractCarWash) :
             "Total_Price": round(final_price, 2)
         }
     # Метод начала мойки через оплату наличкой
-    def start_wash_session_cash_pay(self, mode: BoxWashMode, cash_amount: float) -> dict[str, any]:
+    def start_wash_session_cash_pay(self, mode: ResourceType, cash_amount: float) -> dict[str, any]:
         # Проверка на доступность бокса
         if self.box_status != BoxStatus.FREE :
             raise ValueError(f"Бокс №{self.box_number}, недоступен!")
 
-        self.cash_box += cash_amount
-        current_session_balance = self.cash_box
+        current_session_balance = cash_amount
 
         # Проверка выбраного режима мойки
-        if mode == BoxWashMode.FOAM :
+        if mode == ResourceType.FOAM :
             tariff = self.TARIFF_FOAM_PER_SEC
             consumption = self.FOAM_CONSUMPTION_PER_SEC
-        elif mode == BoxWashMode.WAX :
+        elif mode == ResourceType.WAX :
             tariff = self.TARIFF_WAX_PER_SEC
             consumption = self.WAX_CONSUMPTION_PER_SEC
         else :
@@ -161,11 +160,11 @@ class StandartWashBox(AbstractCarWash) :
         try:
             while True:
                 # Проверяем баки с химией
-                if mode == BoxWashMode.FOAM and self.current_foam < consumption:
+                if mode == ResourceType.FOAM and self.current_foam < consumption:
                     self.set_maintance_status() # Уходим в ремонт
                     raise ValueError("Ресурсы в баке пены закончились!")
                     
-                if mode == BoxWashMode.WAX and self.current_wax < consumption:
+                if mode == ResourceType.WAX and self.current_wax < consumption:
                     self.set_maintance_status()
                     raise ValueError("Ресурсы в баке воска закончились!")
 
@@ -176,9 +175,9 @@ class StandartWashBox(AbstractCarWash) :
                 # Списываем с баланса текущий тариф
                 current_session_balance -= tariff
 
-                if mode == BoxWashMode.FOAM:
+                if mode == ResourceType.FOAM:
                     self.current_foam -= consumption
-                elif mode == BoxWashMode.WAX:
+                elif mode == ResourceType.WAX:
                     self.current_wax -= consumption
 
                 # Добавляем секунду работы для расчета финальной цены

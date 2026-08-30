@@ -19,7 +19,7 @@ class AbstractCarWash:
         }
     # Метод перевода бокса в состояние ремонта
     def set_maintance_status(self) -> dict[str, any] :
-        self.box_status = BoxStatus.MAINTANCE
+        self.box_status = BoxStatus.MAINTENANCE
         return{
             "Box_Number": self.box_number,
             "Status": self.box_status

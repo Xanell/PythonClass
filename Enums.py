@@ -3,7 +3,7 @@ from enum import Enum
 class BoxStatus(Enum) :
     FREE = "Свободен"
     BUSY = "Занят"
-    MAINTANCE = "На обслуживании"
+    MAINTENANCE = "На обслуживании"
 
 class ResourceType(Enum) :
     WATER = "Мойка водой"
