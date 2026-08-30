@@ -13,23 +13,23 @@ class AbstractCarWash:
     # Метод получение текущего состояния бокса
     def get_status_report(self) -> dict[str, any] :
         return {
-            "Box_Number": self.box_number,
-            "Cash_Box": self.cash_box,
-            "Status": self.box_status
+            "box_number": self.box_number,
+            "cash_box": self.cash_box,
+            "status": self.box_status
         }
     # Метод перевода бокса в состояние ремонта
     def set_maintenance_status(self) -> dict[str, any] :
         self.box_status = BoxStatus.MAINTENANCE
         return{
-            "Box_Number": self.box_number,
-            "Status": self.box_status
+            "box_number": self.box_number,
+            "status": self.box_status
         }
     # Метод перевода бокса в состояние свободен
     def finish_maintenance_status(self) -> dict[str, any] :
         self.box_status = BoxStatus.FREE
         return{
-            "Box_Number": self.box_number,
-            "Box_Status": self.box_status
+            "box_number": self.box_number,
+            "box_status": self.box_status
         }
     # Метод оплаты
     def process_payment(self, amount: float, payment_type: PaymentType, user: User) -> bool:
