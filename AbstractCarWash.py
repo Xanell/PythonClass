@@ -2,10 +2,10 @@ from Enums import BoxStatus, PaymentType
 from User_Class import User
 
 class AbstractCarWash: 
-    def __init__(self, id: int, adress: str, box_number: int): 
+    def __init__(self, id: int, address: str, box_number: int): 
         
         self.car_wash_Id = id 
-        self.car_was_Adress = adress
+        self.car_was_address = address
         self.box_number = box_number
         self.box_status = BoxStatus.FREE
         self.cash_box = 0.0
