@@ -1,38 +1,18 @@
-from enum import Enum
+from Enums import BoxStatus, ResourceType, WashMode
 import datetime
-
-class ResourceType(Enum):
-    """Типы ресурсов"""
-    WATER = "Вода"
-    OSMOS = "Осмос"
-    WAX = "Воск"
-    SHAMPOO = "Шампунь"
-
-class WashMode(Enum):
-    """Режимы мойки"""
-    EXPRESS = "Экспресс мойка"
-    STANDARD = "Стандартная мойка"
-    PREMIUM = "Премиум мойка"
-
-class WashStatus(Enum):
-    """Статусы станции"""
-    IDLE = "Свободна"
-    BUSY = "Занята"
-    MAINTENANCE = "Обслуживание"
-
+from AbstractCarWash import AbstractCarWash
 
 # Основной класс
-class RobotWashStation:
+class RobotWashStation(AbstractCarWash):
     
-    def __init__(self, station_id: int, location: str):
+    def __init__(self, id: int, adress: str, box_number: int):
+        super().__init__(id, adress, box_number)
 
         # Инфо о станции
-        self.station_id = station_id
-        self.location = location
-        self.wash_status = WashStatus.IDLE
+        self.wash_status = WashStatus.FREE
         
         # Ресурсы
-        self.water = 500.0      # литры
+        self.water = 500.0      # литры   # конс
         self.osmos = 50.0       # литры
         self.wax = 5.0          # литры
         self.shampoo = 10.0     # литры
