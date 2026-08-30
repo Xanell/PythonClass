@@ -47,161 +47,115 @@ class StandartWashBox(AbstractCarWash) :
             "Current_Wax": self.current_wax,
             "Status": self.box_status
         }
-    # Метод начала мойки машины при оплате через приложение
-    def start_wash_session_app_pay(self, mode: ResourceType, user: User, duration_seconds: int = 0) -> dict[str, any]:
-        # Проверка на доступность бокса
-        if self.box_status != BoxStatus.FREE :
-            raise ValueError(f"Бокс №{self.box_number}, недоступен!")
+    # Метод начала мойки машины 
+def start_wash_session(self, mode: ResourceType, payment_type: PaymentType,
+                       user: User = None, duration_seconds: int = 0,
+                       cash_amount: float = 0.0) -> dict[str, Any]:
+    """
+    Универсальный метод запуска мойки.
+    - payment_type=APP: требуется user и duration_seconds > 0.
+    - payment_type=CASH: требуется cash_amount > 0, duration_seconds игнорируется.
+    """
+    # Проверка доступности бокса
+    if self.box_status != BoxStatus.FREE:
+        raise ValueError(f"Бокс №{self.box_number} недоступен!")
 
-        current_session_balance = 0.0
-        # Проверка текущего баланса пользователя
-        if user.balance <= 0 :
-            raise ValueError("Пополните баланс!")
-        
-        current_session_balance = user.balance
+    # Определение тарифа и расхода ресурсов
+    if mode == ResourceType.FOAM:
+        tariff = self.TARIFF_FOAM_PER_SEC
+        consumption = self.FOAM_CONSUMPTION_PER_SEC
+    elif mode == ResourceType.WAX:
+        tariff = self.TARIFF_WAX_PER_SEC
+        consumption = self.WAX_CONSUMPTION_PER_SEC
+    else:  # WATER
+        tariff = self.TARIFF_WATER_PER_SEC
+        consumption = 0.0
 
-        # Проверка выбраного режима мойки
-        if mode == ResourceType.FOAM :
-            tariff = self.TARIFF_FOAM_PER_SEC
-            consumption = self.FOAM_CONSUMPTION_PER_SEC
-        elif mode == ResourceType.WAX :
-            tariff = self.TARIFF_WAX_PER_SEC
-            consumption = self.WAX_CONSUMPTION_PER_SEC
-        else :
-            tariff = self.TARIFF_WATER_PER_SEC
-            consumption = 0.0
+    # Предварительные проверки в зависимости от типа оплаты
+    if payment_type == PaymentType.APP:
+        if user is None:
+            raise ValueError("Для оплаты через приложение необходимо указать пользователя")
+        if duration_seconds <= 0:
+            raise ValueError("Укажите длительность мойки в секундах")
+        total_cost = duration_seconds * tariff
+        if user.balance < total_cost:
+            raise ValueError(f"Недостаточно средств на балансе: нужно {total_cost:.2f} руб., а на балансе {user.balance:.2f} руб.")
+        max_seconds = duration_seconds
+        # Для APP лимит по времени фиксирован
+    elif payment_type == PaymentType.CASH:
+        if cash_amount <= 0:
+            raise ValueError("Внесённая сумма должна быть положительной")
+        # Для CASH лимит определяется внесёнными деньгами (без сдачи)
+        session_balance = cash_amount
+    else:
+        raise ValueError("Неизвестный тип оплаты")
 
-        self.box_status = BoxStatus.BUSY
-        seconds_passed = 0
+    # Запуск мойки
+    self.box_status = BoxStatus.BUSY
+    seconds_passed = 0
 
-        try:
-            while True:
-                # Проверяем баки с химией
-                if mode == ResourceType.FOAM and self.current_foam < consumption:
-                    self.set_maintenance_status() # Уходим в ремонт
-                    raise ValueError("Ресурсы в баке пены закончились!")
-                    
-                if mode == ResourceType.WAX and self.current_wax < consumption:
-                    self.set_maintenance_status()
-                    raise ValueError("Ресурсы в баке воска закончились!")
+    try:
+        while True:
+            # Проверка ресурсов
+            if mode == ResourceType.FOAM and self.current_foam < consumption:
+                self.set_maintenance_status()   # исправлено имя метода
+                raise ValueError("Ресурсы в баке пены закончились!")
+            if mode == ResourceType.WAX and self.current_wax < consumption:
+                self.set_maintenance_status()
+                raise ValueError("Ресурсы в баке воска закончились!")
 
-                # Проверяем баланс пользователя
-                if current_session_balance < tariff:
-                    raise ValueError("Деньги на балансе приложения закончились!")
+            # Проверка денег (только для наличных, для APP уже проверено)
+            if payment_type == PaymentType.CASH:
+                if session_balance < tariff:
+                    raise ValueError("Внесённые наличные средства закончились!")
+                session_balance -= tariff
 
-                # Списываем с баланса текущий тариф
-                user.balance -= tariff
-                current_session_balance = user.balance
+            # Расходуем ресурсы
+            if mode == ResourceType.FOAM:
+                self.current_foam -= consumption
+            elif mode == ResourceType.WAX:
+                self.current_wax -= consumption
 
-                if mode == ResourceType.FOAM:
-                    self.current_foam -= consumption
-                elif mode == ResourceType.WAX:
-                    self.current_wax -= consumption
+            seconds_passed += 1
 
-                # Добавляем секунду работы для расчета финальной цены
-                seconds_passed += 1
-
-                if seconds_passed >= duration_seconds:
-                    break
-
-        except ValueError as error:
-            # Мойка прервалась аварийно (закончились деньги или химия)
-            print(f"[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
-            
-            # Считаем цену за то время, которое клиент УСПЕЛ отмыть
-            final_price = seconds_passed * tariff
-            
-            # Если это была не поломка бака, возвращаем бокс в работу
-            if self.box_status == BoxStatus.BUSY:
-                self.box_status = BoxStatus.FREE
-                
-            # Проводим платеж в родительском классе (для учета выручки total_revenue)
-            if final_price > 0:
-                self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
-
-            return {
-                "Message": "Мойка принудительно остановлена",
-                "Box_Number": self.box_number,
-                "Status": self.box_status,
-                "Time": seconds_passed,
-                "Total_Price": round(final_price, 2),
-                "Remaining_Balance": round(user.balance, 2)
-            }
+            # Условие завершения для APP
+            if payment_type == PaymentType.APP and seconds_passed >= max_seconds:
+                break
+            # Для CASH выход только по исключению (когда закончатся деньги или ресурсы)
+    except ValueError as error:
+        print(f"[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
         final_price = seconds_passed * tariff
-        self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
-        self.box_status = BoxStatus.FREE
-        return {
-            "Message": "Мойка успешно завершена по таймеру!",
-            "Time": seconds_passed,
-            "Total_Price": round(final_price, 2)
-        }
-    # Метод начала мойки через оплату наличкой
-    def start_wash_session_cash_pay(self, mode: ResourceType, cash_amount: float) -> dict[str, any]:
-        # Проверка на доступность бокса
-        if self.box_status != BoxStatus.FREE :
-            raise ValueError(f"Бокс №{self.box_number}, недоступен!")
-
-        current_session_balance = cash_amount
-
-        # Проверка выбраного режима мойки
-        if mode == ResourceType.FOAM :
-            tariff = self.TARIFF_FOAM_PER_SEC
-            consumption = self.FOAM_CONSUMPTION_PER_SEC
-        elif mode == ResourceType.WAX :
-            tariff = self.TARIFF_WAX_PER_SEC
-            consumption = self.WAX_CONSUMPTION_PER_SEC
-        else :
-            tariff = self.TARIFF_WATER_PER_SEC
-            consumption = 0.0
-
-        self.box_status = BoxStatus.BUSY
-        seconds_passed = 0
-
-        try:
-            while True:
-                # Проверяем баки с химией
-                if mode == ResourceType.FOAM and self.current_foam < consumption:
-                    self.set_maintenance_status() # Уходим в ремонт
-                    raise ValueError("Ресурсы в баке пены закончились!")
-                    
-                if mode == ResourceType.WAX and self.current_wax < consumption:
-                    self.set_maintenance_status()
-                    raise ValueError("Ресурсы в баке воска закончились!")
-
-                # Проверяем баланс пользователя
-                if current_session_balance < tariff:
-                    raise ValueError("Внесенные наличные средства полностью закончились!")
-
-                # Списываем с баланса текущий тариф
-                current_session_balance -= tariff
-
-                if mode == ResourceType.FOAM:
-                    self.current_foam -= consumption
-                elif mode == ResourceType.WAX:
-                    self.current_wax -= consumption
-
-                # Добавляем секунду работы для расчета финальной цены
-                seconds_passed += 1
-
-        except ValueError as error:
-            # Мойка прервалась аварийно (закончились деньги или химия)
-            print(f"[ТЕРМИНАЛ БОКСА №{self.box_number}]: {error}")
-            
-            # Считаем цену за то время, которое клиент УСПЕЛ отмыть
-            final_price = seconds_passed * tariff
-            
-            # Если это была не поломка бака, возвращаем бокс в работу
-            if self.box_status == BoxStatus.BUSY:
-                self.box_status = BoxStatus.FREE
-                
-            # Проводим платеж в родительском классе (для учета выручки total_revenue)
-            if final_price > 0:
+        if self.box_status == BoxStatus.BUSY:
+            self.box_status = BoxStatus.FREE
+        if final_price > 0:
+            if payment_type == PaymentType.APP:
+                self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
+            else:
                 self.process_payment(amount=final_price, payment_type=PaymentType.CASH, user=None)
+        return {
+            "message": "Мойка принудительно остановлена",
+            "box_number": self.box_number,
+            "status": self.box_status,
+            "time": seconds_passed,
+            "total_price": round(final_price, 2),
+            "remaining_balance": round(user.balance, 2) if user else None
+        }
 
-            return {
-                "Message": "Мойка принудительно остановлена",
-                "Box_Number": self.box_number,
-                "Status": self.box_status,
-                "Time": seconds_passed,
-                "Total_Price": round(final_price, 2),
-            }
+    # Успешное завершение
+    final_price = seconds_passed * tariff
+    if payment_type == PaymentType.APP:
+        self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
+        remaining_balance = round(user.balance, 2)
+    else:
+        self.process_payment(amount=final_price, payment_type=PaymentType.CASH, user=None)
+        remaining_balance = None
+
+    self.box_status = BoxStatus.FREE
+    return {
+        "message": "Мойка успешно завершена",
+        "box_number": self.box_number,
+        "status": self.box_status,
+        "time": seconds_passed,
+        "total_price": round(final_price, 2),
+        "remaining_balance": remaining_balance
+    }
