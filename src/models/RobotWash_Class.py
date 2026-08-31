@@ -123,8 +123,10 @@ class RobotWashStation(AbstractCarWash):
         self.log_action("Сообщение", "Все ресурсы заправлены")
         print("Все ресурсы заправлены до максимума!")
 
+    def get_error_history_log(self):
+        return self.error_history_log
     # Получить текущее значение ресурса
-    def get_resource(self, resource: ResourceType) -> float:
+    def get_resources(self, resource: ResourceType) -> float:
 
         if resource == ResourceType.WATER:
             return self.WATER
@@ -151,7 +153,7 @@ class RobotWashStation(AbstractCarWash):
         }
         
         # Проверяем, не превысит ли лимит, падаем с ошибкой
-        current = self.get_resource(resource)
+        current = self.get_resources(resource)
         if current + amount > max_capacity[resource]:
             error_msg = (f"Нельзя долить больше {max_capacity[resource]}!")
             self.add_error_history_log(error_msg)
@@ -241,7 +243,7 @@ class RobotWashStation(AbstractCarWash):
 
         return {
             "Номер станции": self.car_wash_Id,
-            "Адрес": self.car_wash_Adress,
+            "Адрес": self.car_wash_address,
             "Всего моек за день": self.total_washes,
             "Выручка за день": self.cash,
             "Остаток воды": self.WATER,
@@ -262,7 +264,7 @@ class RobotWashStation(AbstractCarWash):
 station = RobotWashStation(1, "д. Юркино, Солнечная ул. 7", 2)
 
 
-station.wash_status = BoxStatus.MAINTANCE
+station.wash_status = BoxStatus.MAINTENANCE
 print("Мойка на обслуживании!")
 station.full_refill()
 station.show_resources()
