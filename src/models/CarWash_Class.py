@@ -166,6 +166,7 @@ class StandartWashBox(AbstractCarWash) :
                 "message": "Мойка принудительно остановлена",
                 "box_number": self.box_number,
                 "status": self.box_status,
+                "error": error,
                 "time": seconds_passed,
                 "total_price": round(final_price, 2),
                 "remaining_balance": round(user.balance, 2) if user else None
