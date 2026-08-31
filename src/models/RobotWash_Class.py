@@ -1,6 +1,7 @@
-from src.config.Enums import BoxStatus, ResourceType, WashMode
+from src.config.Enums import BoxStatus, ResourceType, WashMode, PaymentType
 import datetime
 from src.core.AbstractCarWash import AbstractCarWash
+from src.User_Class import User
 
 # Основной класс
 class RobotWashStation(AbstractCarWash):
@@ -9,57 +10,39 @@ class RobotWashStation(AbstractCarWash):
         super().__init__(id, adress, box_number)
         
         # Ресурсы (cons)
-        self.WATER = 500.0      # литры 
-        self.OSMOS = 50.0       # литры
-        self.WAX = 5.0          # литры
-        self.SHAMPOO = 10.0     # литры
+        self.MAX_WATER = 500.0
+        self.MAX_OSMOS = 50.0
+        self.MAX_WAX = 5.0
+        self.MAX_SHAMPOO = 10.0
         
         # Режимы (расход)
 
         # Экспресс (cons)
-        self.EXPRESS_WATER = 50     # литры
-        self.EXPRESS_SHAMPOO = 2    # литры
+        self.EXPRESS_WATER_CONSUMPTION = 50     # литры
+        self.EXPRESS_SHAMPOO_CONSUMPTION = 2    # литры
         
         # Стандарт (cons)
-        self.STANDART_WATER = 70    # литры
-        self.STANDART_SHAMPOO = 3   # литры
-        self.STANDART_OSMOS = 20    # литры
+        self.STANDART_WATER_CONSUMPTION = 70    # литры
+        self.STANDART_SHAMPOO_CONSUMPTION = 3   # литры
+        self.STANDART_OSMOS_CONSUMPTION = 20    # литры
         
         # Премиум (cons)
-        self.PREMIUM_WATER = 120    # литры
-        self.PREMIUM_SHAMPOO = 5    # литры
-        self.PREMIUM_OSMOS = 30     # литры
-        self.PREMIUM_WAX = 3        # литры
+        self.PREMIUM_WATER_CONSUMPTION = 120    # литры
+        self.PREMIUM_SHAMPOO_CONSUMPTION = 5    # литры
+        self.PREMIUM_OSMOS_CONSUMPTION = 30     # литры
+        self.PREMIUM_WAX_CONSUMPTION = 3        # литры
 
         # Цены
         self.EXPRESS_WASH = 300     # рубли
         self.STANDART_WASH = 500    # рубли
         self.PREMIUM_WASH = 1000    # рубли
         
-        # Статистика
-        self.total_washes = 0       # всего помек
-        self.cash = 0               # итоговая выручка
-
-        # История операций
-        self.history = []
 
     # Вспомогательные методы
 
-    # Запись в историю
-    def log_action(self, action: str, details: str):
-
-        self.history.append({
-            'time': datetime.datetime.now(),
-            'action': action,
-            'details': details
-        })
-
-    # Вывод истории операций
-    def show_history(self):
-
-        for record in self.history:
-            date_time = datetime.datetime.now()
-            print(f"   [{date_time}] {record['action']}: {record['details']}")
+    # абстрактный метод на запись ошибок
+    def get_error_history_log(self):
+        return self.error_history_log
 
     # Методы для проверок
 
@@ -120,13 +103,18 @@ class RobotWashStation(AbstractCarWash):
         self.SHAMPOO = 10.0
         
         self.wash_status = BoxStatus.FREE
-        self.log_action("Сообщение", "Все ресурсы заправлены")
         print("Все ресурсы заправлены до максимума!")
 
-    def get_error_history_log(self):
-        return self.error_history_log
+    def get_resources(self):
+        return {
+            "current_water" : round(self.WATER, 2),
+            "current_osmos" : round(self.OSMOS, 2),
+            "current_wax": round(self.WAX, 2),
+            "current_shampoo": round(self.SHAMPOO, 2)
+        }
+
     # Получить текущее значение ресурса
-    def get_resources(self, resource: ResourceType) -> float:
+    def get_current_resources(self, resource: ResourceType) -> float:
 
         if resource == ResourceType.WATER:
             return self.WATER
@@ -167,28 +155,16 @@ class RobotWashStation(AbstractCarWash):
             self.WAX += amount
         elif resource == ResourceType.SHAMPOO:
             self.SHAMPOO += amount
-        
-        self.log_action("Сообщение", f"Ресурс: {resource.value} заправлен на {amount} л.")
-
-    # Показать все ресурсы
-    def show_resources(self):
-
-        print(f"Вода: {self.WATER} л")
-        print(f"Осмос: {self.OSMOS} л")
-        print(f"Воск: {self.WAX} л")
-        print(f"Шампунь: {self.SHAMPOO} л")
-    
 
     # Методы для клиента =======================
 
     # Запуск мойки
-    def start_wash(self, mode: WashMode) -> dict:
+    def start_wash_session(self, mode: WashMode, payment_type: PaymentType, user: User = None, cash_amount: float = 0.0) -> dict:
         
         # Проверка статуса
-        if self.wash_status == BoxStatus.MAINTENANCE:
-            return {"Сообщение": "Станция на обслуживании!"}
-        if self.wash_status == BoxStatus.BUSY:
-            return {"Сообщение": "Станция занята!"}
+        if self.box_status != BoxStatus.FREE:
+            raise ValueError (f"Бокс № {self.box_number} недоступен!")
+        
         
         # Получение параметров режима
         if mode == WashMode.EXPRESS:
@@ -235,32 +211,8 @@ class RobotWashStation(AbstractCarWash):
         # Переводим статус
         self.wash_status = BoxStatus.FREE
 
-        # Запись в историю
-        self.log_action("Сообщение", "Мойка завершена")
-        
-    # Собрать статистику станции
-    def get_statistics(self) -> dict:
 
-        return {
-            "Номер станции": self.car_wash_Id,
-            "Адрес": self.car_wash_address,
-            "Всего моек за день": self.total_washes,
-            "Выручка за день": self.cash,
-            "Остаток воды": self.WATER,
-            "Остаток осмоса": self.OSMOS,
-            "Остаток воска": self.WAX,
-            "Остаток шампуня": self.SHAMPOO,
-            "Записей в истории": len(self.history)
-        }
-
-    # Вывести статистику
-    def print_statistics(self):
-
-        stats = self.get_statistics()
-        for key, value in stats.items():
-            print(f"{key}: {value}")
-
-
+'''
 station = RobotWashStation(1, "д. Юркино, Солнечная ул. 7", 2)
 
 
@@ -289,13 +241,15 @@ result = station.start_wash(WashMode.PREMIUM)
 
 print("Остатки ресурсов после моек")
 station.show_resources()
+'''
 
 
-
+'''
 station.refill_resource(ResourceType.WATER, 10)
+'''
 
 
-
+'''
 station.full_refill()
 station.show_resources()
 
@@ -304,4 +258,5 @@ station.show_history()
 station.print_statistics()
 
 station.get_error_history_log()
+'''
 
