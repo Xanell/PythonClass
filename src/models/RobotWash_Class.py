@@ -1,5 +1,4 @@
 from src.config.Enums import BoxStatus, ResourceType, WashMode, PaymentType
-import datetime
 from src.core.AbstractCarWash import AbstractCarWash
 from src.User_Class import User
 
@@ -158,58 +157,77 @@ class RobotWashStation(AbstractCarWash):
 
     # Методы для клиента =======================
 
+    # получить ценник
+    def get_tariff(self, mode: WashMode):
+        if mode == WashMode.EXPRESS:
+            return self.EXPRESS_WASH
+        if mode == WashMode.STANDARD:
+            return self.STANDART_WASH
+        if mode == WashMode.PREMIUM:
+            return self.PREMIUM_WASH
+
+    # Метод проверки баланса кошелька
+    def validate_app_payment(self, user: User, tariff: float) -> None :
+        if user is None:
+            raise ValueError("Для оплаты через приложение необходимо указать пользователя")
+        
+        if user.balance < tariff:
+            raise ValueError(
+                f"Недостаточно средств на балансе: нужно {tariff} руб., "
+                f"На на балансе {user.balance} руб."
+            )
+        
+    # Метод проверки оплаты наличными
+    def validate_cash_payment(self, cash_amount: float) -> None :
+        if cash_amount <= 0:
+            raise ValueError("Внесённая сумма должна быть положительной")
+
     # Запуск мойки
     def start_wash_session(self, mode: WashMode, payment_type: PaymentType, user: User = None, cash_amount: float = 0.0) -> dict:
-        
-        # Проверка статуса
-        if self.box_status != BoxStatus.FREE:
-            raise ValueError (f"Бокс № {self.box_number} недоступен!")
-        
-        
-        # Получение параметров режима
-        if mode == WashMode.EXPRESS:
-            mode_name = "Экспресс"
-        elif mode == WashMode.STANDARD:
-            mode_name = "Стандарт"
-        elif mode == WashMode.PREMIUM:
-            mode_name = "Премиум"
-        else:
-            return {"Сообщение": "Неизвестный режим!"}
-        
-        # Проверка ресурсов
-        if not self.check_resources(mode):
-            # Если Премиум недоступен - предлагаем Экспресс
-            if mode == WashMode.PREMIUM and self.check_express():
-                return {"Сообщение": "Недостаточно ресурсов для Премиум. Доступен Экспресс"}
-            else:
-                return {"Сообщение": "Недостаточно ресурсов для мойки! Обратитесь к технику!"}
-        
-        # Запуск цикла мойки
-        self.wash_status = BoxStatus.BUSY
-        self.log_action("Сообщение", f"Начало {mode_name} мойки")
-        
-        # Списываем ресурсы
-        if mode == WashMode.EXPRESS:
-            self.WATER -= self.EXPRESS_WATER
-            self.SHAMPOO -= self.EXPRESS_SHAMPOO
-            self.cash += self.EXPRESS_WASH
-        elif mode == WashMode.STANDARD:
-            self.WATER -= self.STANDART_WATER
-            self.SHAMPOO -= self.STANDART_SHAMPOO
-            self.OSMOS -= self.STANDART_WATER
-            self.cash += self.STANDART_WASH
-        elif mode == WashMode.PREMIUM:
-            self.WATER -= self.PREMIUM_WATER
-            self.SHAMPOO -= self.PREMIUM_SHAMPOO
-            self.OSMOS -= self.PREMIUM_OSMOS
-            self.WAX -= self.PREMIUM_WAX
-            self.cash += self.PREMIUM_WASH
-        
-        # Обновляем статистику
-        self.total_washes += 1
+        try:
+            # Проверка статуса
+            if self.box_status != BoxStatus.FREE:
+                raise ValueError (f"Бокс № {self.box_number} недоступен!")
+            
+            # Проверка ресурсов
+            self.check_resources(mode)
+            tariff = self.get_tariff(mode)
 
-        # Переводим статус
-        self.wash_status = BoxStatus.FREE
+            # Предварительные проверки в зависимости от типа оплаты
+            if payment_type == PaymentType.APP:
+                self.validate_app_payment(user, tariff)
+            elif payment_type == PaymentType.CASH:
+                self.validate_cash_payment(cash_amount)
+            else:
+                raise ValueError("Неизвестный тип оплаты")
+    
+            # Запуск цикла мойки
+            self.box_status = BoxStatus.BUSY
+            
+            # Списываем ресурсы
+            if mode == WashMode.EXPRESS:
+                self.WATER -= self.EXPRESS_WATER
+                self.SHAMPOO -= self.EXPRESS_SHAMPOO
+            elif mode == WashMode.STANDARD:
+                self.WATER -= self.STANDART_WATER
+                self.SHAMPOO -= self.STANDART_SHAMPOO
+                self.OSMOS -= self.STANDART_WATER   
+            elif mode == WashMode.PREMIUM:
+                self.WATER -= self.PREMIUM_WATER
+                self.SHAMPOO -= self.PREMIUM_SHAMPOO
+                self.OSMOS -= self.PREMIUM_OSMOS
+                self.WAX -= self.PREMIUM_WAX
+
+            if payment_type == PaymentType.APP:
+                self.process_payment(amount=tariff, payment_type=PaymentType.APP, user=user)
+            else:
+                self.process_payment(amount=tariff, payment_type=PaymentType.CASH, user=None)
+            
+            # Переводим статус
+            self.wash_status = BoxStatus.FREE
+
+        except ValueError as error:
+            self.add_error_history_log(error)
 
 
 '''
