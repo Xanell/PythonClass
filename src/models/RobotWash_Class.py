@@ -4,7 +4,7 @@ from src.core.AbstractCarWash import AbstractCarWash
 
 # Основной класс
 class RobotWashStation(AbstractCarWash):
-    
+
     def __init__(self, id: int, adress: str, box_number: int):
         super().__init__(id, adress, box_number)
         
@@ -17,23 +17,29 @@ class RobotWashStation(AbstractCarWash):
         # Режимы (расход)
 
         # Экспресс (cons)
-        self.EXPRESS_WATER = 50
-        self.EXPRESS_SHAMPOO = 2
+        self.EXPRESS_WATER = 50     # литры
+        self.EXPRESS_SHAMPOO = 2    # литры
         
         # Стандарт (cons)
-        self.STANDART_WATER = 70
-        self.STANDART_SHAMPOO = 3
-        self.STANDART_OSMOS = 20
+        self.STANDART_WATER = 70    # литры
+        self.STANDART_SHAMPOO = 3   # литры
+        self.STANDART_OSMOS = 20    # литры
         
         # Премиум (cons)
-        self.PREMIUM_WATER = 120
-        self.PREMIUM_SHAMPOO = 5
-        self.PREMIUM_OSMOS = 30
-        self.PREMIUM_WAX = 3
+        self.PREMIUM_WATER = 120    # литры
+        self.PREMIUM_SHAMPOO = 5    # литры
+        self.PREMIUM_OSMOS = 30     # литры
+        self.PREMIUM_WAX = 3        # литры
+
+        # Цены
+        self.EXPRESS_WASH = 300     # рубли
+        self.STANDART_WASH = 500    # рубли
+        self.PREMIUM_WASH = 1000    # рубли
         
         # Статистика
-        self.total_washes = 0
-        
+        self.total_washes = 0       # всего помек
+        self.cash = 0               # итоговая выручка
+
         # История операций
         self.history = []
 
@@ -60,22 +66,34 @@ class RobotWashStation(AbstractCarWash):
     # Хватит ли ресурсов для Экспресса?
     def check_express(self):
 
-        return self.WATER >= self.EXPRESS_WATER and self.SHAMPOO >= self.EXPRESS_SHAMPOO
-
+        if self.WATER >= self.EXPRESS_WATER and self.SHAMPOO >= self.EXPRESS_SHAMPOO:
+            return True
+        else:
+            error_msg = (f"Не хватает ресурсов для мойки, вызовите техника!")
+            self.add_error_history_log(error_msg)
+    
     # Хватит ли ресурсов для Стандарта?
     def check_standard(self):
 
-        return (self.WATER >= self.STANDART_WATER and 
+        if (self.WATER >= self.STANDART_WATER and 
                 self.SHAMPOO >= self.STANDART_SHAMPOO and 
-                self.OSMOS >= self.STANDART_OSMOS)
+                self.OSMOS >= self.STANDART_OSMOS):
+            return True
+        else:
+            error_msg = (f"Не хватает ресурсов для мойки, вызовите техника!")
+            self.add_error_history_log(error_msg)
 
     # Хватит ли ресурсов для Премиума?
     def check_premium(self):
 
-        return (self.WATER >= self.PREMIUM_WATER and 
+        if (self.WATER >= self.PREMIUM_WATER and 
                 self.SHAMPOO >= self.PREMIUM_SHAMPOO and 
                 self.OSMOS >= self.PREMIUM_OSMOS and 
-                self.WAX >= self.PREMIUM_WAX)
+                self.WAX >= self.PREMIUM_WAX):
+            return True
+        else:
+            error_msg = (f"Не хватает ресурсов для мойки, вызовите техника!")
+            self.add_error_history_log(error_msg)
 
     # Универсальная проверка ресурсов
     def check_resources(self, mode: WashMode) -> bool:
@@ -94,7 +112,7 @@ class RobotWashStation(AbstractCarWash):
     # Полная заправка всех ресурсов
     def full_refill(self):
 
-        self.wash_status = BoxStatus.MAINTANCE
+        self.wash_status = BoxStatus.MAINTENANCE
         
         self.WATER = 500.0
         self.OSMOS = 50.0
@@ -116,7 +134,10 @@ class RobotWashStation(AbstractCarWash):
             return self.WAX
         elif resource == ResourceType.SHAMPOO:
             return self.SHAMPOO
-        return 0.0
+        else:
+            error_msg = (f"Такого ресурса нет!")
+            self.add_error_history_log(error_msg)
+        return error_msg
 
     # Долив конкретного ресурса
     def refill_resource(self, resource: ResourceType, amount: float):
@@ -132,8 +153,9 @@ class RobotWashStation(AbstractCarWash):
         # Проверяем, не превысит ли лимит, падаем с ошибкой
         current = self.get_resource(resource)
         if current + amount > max_capacity[resource]:
-            raise ValueError(f"Нельзя долить больше {max_capacity[resource]}!")
-        
+            error_msg = (f"Нельзя долить больше {max_capacity[resource]}!")
+            self.add_error_history_log(error_msg)
+
         # Доливаем
         if resource == ResourceType.WATER:
             self.WATER += amount
@@ -161,7 +183,7 @@ class RobotWashStation(AbstractCarWash):
     def start_wash(self, mode: WashMode) -> dict:
         
         # Проверка статуса
-        if self.wash_status == BoxStatus.MAINTANCE:
+        if self.wash_status == BoxStatus.MAINTENANCE:
             return {"Сообщение": "Станция на обслуживании!"}
         if self.wash_status == BoxStatus.BUSY:
             return {"Сообщение": "Станция занята!"}
@@ -192,15 +214,18 @@ class RobotWashStation(AbstractCarWash):
         if mode == WashMode.EXPRESS:
             self.WATER -= self.EXPRESS_WATER
             self.SHAMPOO -= self.EXPRESS_SHAMPOO
+            self.cash += self.EXPRESS_WASH
         elif mode == WashMode.STANDARD:
             self.WATER -= self.STANDART_WATER
             self.SHAMPOO -= self.STANDART_SHAMPOO
             self.OSMOS -= self.STANDART_WATER
+            self.cash += self.STANDART_WASH
         elif mode == WashMode.PREMIUM:
             self.WATER -= self.PREMIUM_WATER
             self.SHAMPOO -= self.PREMIUM_SHAMPOO
             self.OSMOS -= self.PREMIUM_OSMOS
             self.WAX -= self.PREMIUM_WAX
+            self.cash += self.PREMIUM_WASH
         
         # Обновляем статистику
         self.total_washes += 1
@@ -216,8 +241,9 @@ class RobotWashStation(AbstractCarWash):
 
         return {
             "Номер станции": self.car_wash_Id,
-            "Адрес": self.car_was_Adress,
+            "Адрес": self.car_wash_Adress,
             "Всего моек за день": self.total_washes,
+            "Выручка за день": self.cash,
             "Остаток воды": self.WATER,
             "Остаток осмоса": self.OSMOS,
             "Остаток воска": self.WAX,
@@ -232,7 +258,7 @@ class RobotWashStation(AbstractCarWash):
         for key, value in stats.items():
             print(f"{key}: {value}")
 
-'''
+
 station = RobotWashStation(1, "д. Юркино, Солнечная ул. 7", 2)
 
 
@@ -261,18 +287,19 @@ result = station.start_wash(WashMode.PREMIUM)
 
 print("Остатки ресурсов после моек")
 station.show_resources()
-'''
 
-'''
+
+
 station.refill_resource(ResourceType.WATER, 10)
-'''
 
-'''
+
+
 station.full_refill()
 station.show_resources()
 
 station.show_history()
 
 station.print_statistics()
-'''
+
+station.get_error_history_log()
 
