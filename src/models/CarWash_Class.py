@@ -158,9 +158,9 @@ class StandartWashBox(AbstractCarWash) :
                 self.box_status = BoxStatus.FREE
             if final_price > 0:
                 if payment_type == PaymentType.APP:
-                    self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
+                    self.process_payment(final_price, PaymentType.APP, user)
                 else:
-                    self.process_payment(amount=final_price, payment_type=PaymentType.CASH, user=None)
+                    self.process_payment(final_price, PaymentType.CASH, None)
             self.add_pay_history_log(final_price, seconds_passed)
             return {
                 "message": "Мойка принудительно остановлена",
@@ -174,7 +174,7 @@ class StandartWashBox(AbstractCarWash) :
 
         # Успешное завершение
         final_price = seconds_passed * tariff
-        self.process_payment(amount=final_price, payment_type=PaymentType.APP, user=user)
+        self.process_payment(final_price, PaymentType.APP, user)
         remaining_balance = round(user.balance, 2)
         self.box_status = BoxStatus.FREE
         self.add_pay_history_log(final_price, seconds_passed)
