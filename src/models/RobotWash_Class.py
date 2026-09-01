@@ -7,8 +7,14 @@ class RobotWashStation(AbstractCarWash):
 
     def __init__(self, id: int, adress: str, box_number: int):
         super().__init__(id, adress, box_number)
+
+        # Ресурсы
+        self.WATER = 400.0
+        self.OSMOS = 40.0
+        self.WAX = 4.0
+        self.SHAMPOO = 8.0
         
-        # Ресурсы (cons)
+        # Максимальные значения ресурсов
         self.MAX_WATER = 500.0
         self.MAX_OSMOS = 50.0
         self.MAX_WAX = 5.0
@@ -16,16 +22,16 @@ class RobotWashStation(AbstractCarWash):
         
         # Режимы (расход)
 
-        # Экспресс (cons)
+        # Экспресс
         self.EXPRESS_WATER_CONSUMPTION = 50     # литры
         self.EXPRESS_SHAMPOO_CONSUMPTION = 2    # литры
         
-        # Стандарт (cons)
+        # Стандарт
         self.STANDART_WATER_CONSUMPTION = 70    # литры
         self.STANDART_SHAMPOO_CONSUMPTION = 3   # литры
         self.STANDART_OSMOS_CONSUMPTION = 20    # литры
         
-        # Премиум (cons)
+        # Премиум
         self.PREMIUM_WATER_CONSUMPTION = 120    # литры
         self.PREMIUM_SHAMPOO_CONSUMPTION = 5    # литры
         self.PREMIUM_OSMOS_CONSUMPTION = 30     # литры
@@ -39,7 +45,7 @@ class RobotWashStation(AbstractCarWash):
 
     # Вспомогательные методы
 
-    # абстрактный метод на запись ошибок
+    # Реализованный в родительском метод хранения ошибок
     def get_error_history_log(self):
         return self.error_history_log
 
@@ -48,18 +54,19 @@ class RobotWashStation(AbstractCarWash):
     # Хватит ли ресурсов для Экспресса?
     def check_express(self):
 
-        if self.WATER >= self.EXPRESS_WATER and self.SHAMPOO >= self.EXPRESS_SHAMPOO:
+        if self.WATER >= self.EXPRESS_WATER_CONSUMPTION and self.SHAMPOO >= self.EXPRESS_SHAMPOO_CONSUMPTION:
             return True
         else:
             error_msg = (f"Не хватает ресурсов для мойки, вызовите техника!")
             self.add_error_history_log(error_msg)
+            return False
     
     # Хватит ли ресурсов для Стандарта?
     def check_standard(self):
 
-        if (self.WATER >= self.STANDART_WATER and 
-                self.SHAMPOO >= self.STANDART_SHAMPOO and 
-                self.OSMOS >= self.STANDART_OSMOS):
+        if (self.WATER >= self.STANDART_WATER_CONSUMPTION and 
+                self.SHAMPOO >= self.STANDART_SHAMPOO_CONSUMPTION and 
+                self.OSMOS >= self.STANDART_OSMOS_CONSUMPTION):
             return True
         else:
             error_msg = (f"Не хватает ресурсов для мойки, вызовите техника!")
@@ -68,10 +75,10 @@ class RobotWashStation(AbstractCarWash):
     # Хватит ли ресурсов для Премиума?
     def check_premium(self):
 
-        if (self.WATER >= self.PREMIUM_WATER and 
-                self.SHAMPOO >= self.PREMIUM_SHAMPOO and 
-                self.OSMOS >= self.PREMIUM_OSMOS and 
-                self.WAX >= self.PREMIUM_WAX):
+        if (self.WATER >= self.PREMIUM_WATER_CONSUMPTION and 
+                self.SHAMPOO >= self.PREMIUM_SHAMPOO_CONSUMPTION and 
+                self.OSMOS >= self.PREMIUM_OSMOS_CONSUMPTION and 
+                self.WAX >= self.PREMIUM_WAX_CONSUMPTION):
             return True
         else:
             error_msg = (f"Не хватает ресурсов для мойки, вызовите техника!")
@@ -90,20 +97,8 @@ class RobotWashStation(AbstractCarWash):
     
 
     # Методы для техника
-    
-    # Полная заправка всех ресурсов
-    def full_refill(self):
 
-        self.wash_status = BoxStatus.MAINTENANCE
-        
-        self.WATER = 500.0
-        self.OSMOS = 50.0
-        self.WAX = 5.0
-        self.SHAMPOO = 10.0
-        
-        self.wash_status = BoxStatus.FREE
-        print("Все ресурсы заправлены до максимума!")
-
+    # Получить значения всех ресурсов
     def get_resources(self):
         return {
             "current_water" : round(self.WATER, 2),
@@ -111,6 +106,20 @@ class RobotWashStation(AbstractCarWash):
             "current_wax": round(self.WAX, 2),
             "current_shampoo": round(self.SHAMPOO, 2)
         }
+    
+    # Полная заправка всех ресурсов
+    def full_refill(self):
+
+        self.box_status = BoxStatus.MAINTENANCE
+        
+        self.WATER = self.MAX_WATER
+        self.OSMOS = self.MAX_OSMOS
+        self.WAX = self.MAX_WAX
+        self.SHAMPOO = self.MAX_SHAMPOO
+        
+        self.wash_status = BoxStatus.FREE
+        print("Все ресурсы заправлены до максимума!")
+
 
     # Получить текущее значение ресурса
     def get_current_resources(self, resource: ResourceType) -> float:
@@ -157,7 +166,7 @@ class RobotWashStation(AbstractCarWash):
 
     # Методы для клиента =======================
 
-    # получить ценник
+    # Получить ценник тарифа
     def get_tariff(self, mode: WashMode):
         if mode == WashMode.EXPRESS:
             return self.EXPRESS_WASH
@@ -206,18 +215,19 @@ class RobotWashStation(AbstractCarWash):
             
             # Списываем ресурсы
             if mode == WashMode.EXPRESS:
-                self.WATER -= self.EXPRESS_WATER
-                self.SHAMPOO -= self.EXPRESS_SHAMPOO
+                self.WATER -= self.EXPRESS_WATER_CONSUMPTION
+                self.SHAMPOO -= self.EXPRESS_SHAMPOO_CONSUMPTION
             elif mode == WashMode.STANDARD:
-                self.WATER -= self.STANDART_WATER
-                self.SHAMPOO -= self.STANDART_SHAMPOO
-                self.OSMOS -= self.STANDART_WATER   
+                self.WATER -= self.STANDART_WATER_CONSUMPTION
+                self.SHAMPOO -= self.STANDART_SHAMPOO_CONSUMPTION
+                self.OSMOS -= self.STANDART_OSMOS_CONSUMPTION
             elif mode == WashMode.PREMIUM:
-                self.WATER -= self.PREMIUM_WATER
-                self.SHAMPOO -= self.PREMIUM_SHAMPOO
-                self.OSMOS -= self.PREMIUM_OSMOS
-                self.WAX -= self.PREMIUM_WAX
+                self.WATER -= self.PREMIUM_WATER_CONSUMPTION
+                self.SHAMPOO -= self.PREMIUM_SHAMPOO_CONSUMPTION
+                self.OSMOS -= self.PREMIUM_OSMOS_CONSUMPTION
+                self.WAX -= self.PREMIUM_WAX_CONSUMPTION
 
+            # Реализован в родительском метод оплаты (списывем деньги, кладем в общую выручку)
             if payment_type == PaymentType.APP:
                 self.process_payment(amount=tariff, payment_type=PaymentType.APP, user=user)
             else:
@@ -260,6 +270,7 @@ result = station.start_wash(WashMode.PREMIUM)
 print("Остатки ресурсов после моек")
 station.show_resources()
 '''
+
 
 
 '''

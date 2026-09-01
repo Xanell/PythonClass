@@ -24,6 +24,10 @@ class AbstractCarWash(ABC):
     def get_error_history_log(self):
         pass
 
+    # Метод добавления ошибки в историю логов
+    def add_error_history_log(self, error: str) -> None:
+        self.error_history_log.append(error)
+
     # Метод получения статистики по боксу
     def get_statistics(self) -> dict:
         return {
@@ -36,10 +40,6 @@ class AbstractCarWash(ABC):
             "errors": self.get_error_history_log()
         }
     
-    # Метод добавления ошибки в историю логов
-    def add_error_history_log(self, error: str) -> None:
-        self.error_history_log.append(error)
-
     # Метод добавления оплаты в иторию логов
     def add_pay_history_log(self, total_price: float, time_passed: int) -> None:
         if self.box_number not in self.pay_history_log:
