@@ -103,7 +103,7 @@ class RobotWashStation(AbstractCarWash):
         self.curr_shampoo = 10.0
         
         self.box_status = BoxStatus.FREE
-        print("Все ресурсы заправлены до максимума!")
+        return self.get_resources()
 
     def get_resources(self):
         return {
@@ -154,6 +154,8 @@ class RobotWashStation(AbstractCarWash):
             self.curr_wax += amount
         elif resource == ResourceType.SHAMPOO:
             self.curr_shampoo += amount
+
+        return self.get_resources()
 
     # Методы для клиента =======================
 
