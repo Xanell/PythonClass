@@ -19,9 +19,6 @@ class StandartWashBox(AbstractCarWash) :
         self.current_foam = curr_foam if curr_foam is not None else self.MAX_FOAM
         self.current_wax = curr_wax if curr_wax is not None else self.MAX_WAX
 
-    def get_error_history_log(self):
-        return self.error_history_log
-
     # Метод залития мыла в баки
     def restock_foam(self, foam_liters: float) -> dict[str, any] :
         self.current_foam += foam_liters
@@ -54,7 +51,7 @@ class StandartWashBox(AbstractCarWash) :
             "status": self.box_status
         }
 
-    def get_resources(self) -> tuple:
+    def get_resources(self) -> dict[str, any]:
         return {
             "current_foam": round(self.current_foam, 2),
             "current_wax": round(self.current_wax, 2)
@@ -87,7 +84,7 @@ class StandartWashBox(AbstractCarWash) :
             self.current_wax -= consumption
 
     # Метод проверки баланса кошелька
-    def validate_app_payment(self, user: User, duration_seconds: int, tariff: float) -> None :
+    def validate_app_payment(self, user: User, tariff: float, duration_seconds: int) -> None :
         if user is None:
             raise ValueError("Для оплаты через приложение необходимо указать пользователя")
         if duration_seconds <= 0:
@@ -120,7 +117,7 @@ class StandartWashBox(AbstractCarWash) :
 
         # Предварительные проверки в зависимости от типа оплаты
         if payment_type == PaymentType.APP:
-            self.validate_app_payment(user, duration_seconds, tariff)
+            self.validate_app_payment(user, tariff, duration_seconds)
             max_seconds = duration_seconds
         elif payment_type == PaymentType.CASH:
             self.validate_cash_payment(cash_amount)
