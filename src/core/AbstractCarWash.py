@@ -20,9 +20,8 @@ class AbstractCarWash(ABC):
     def get_resources(self):
         pass
 
-    @abstractmethod
     def get_error_history_log(self):
-        pass
+        return self.error_history_log
 
     # Метод добавления ошибки в историю логов
     def add_error_history_log(self, error: str) -> None:
@@ -72,6 +71,7 @@ class AbstractCarWash(ABC):
             "box_number": self.box_number,
             "box_status": self.box_status
         }
+
     # Метод оплаты
     def process_payment(self, amount: float, payment_type: PaymentType, user: User) -> bool:
         if payment_type == PaymentType.CASH:
