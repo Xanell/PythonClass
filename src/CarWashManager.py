@@ -8,17 +8,16 @@ class CarWashManager:
         self.wash_boxes: list[AbstractCarWash] = []
 
     # Метод добавления бокса
-    def add_wash_boxes(self, box: AbstractCarWash) -> None:
+    def add_wash_box(self, box: AbstractCarWash) -> None:
         self.wash_boxes.append(box)
 
     # Метод удаления бокса по номеру бокса
-    def remove_wash_boxes(self, box_number: int) -> list:
+    def remove_wash_box(self, box_number: int) -> None:
         new_boxes = []
         for box in self.wash_boxes :
             if box.box_number != box_number:
                 new_boxes.append(box)
-        self.boxes = new_boxes
-        return new_boxes
+        self.wash_boxes = new_boxes
 
     # Метод получения свободных боксов
     def get_free_boxes(self) -> list:
@@ -37,12 +36,12 @@ class CarWashManager:
         return busy_boxes
 
     # Метод получения боксов находящихся на обслуживании
-    def get_maintanance_boxes(self) -> list:
-        maintanance_boxes = []
+    def get_maintenance_boxes(self) -> list:
+        maintenance_boxes = []
         for box in self.wash_boxes:
             if box.box_status == BoxStatus.MAINTENANCE:
-                maintanance_boxes.append(box)
-        return maintanance_boxes
+                maintenance_boxes.append(box)
+        return maintenance_boxes
     
     # Метод получения общей выручки боксов
     def get_total_revenue(self) -> float:
