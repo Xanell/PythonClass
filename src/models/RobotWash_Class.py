@@ -9,13 +9,14 @@ class RobotWashStation(AbstractCarWash):
         super().__init__(id, address, box_number)
         
         # Максимальные значения ресурсов
-        self.MAX_WATER = 500.0
-        self.MAX_OSMOS = 50.0
-        self.MAX_WAX = 5.0
-        self.MAX_SHAMPOO = 10.0
+        self.MAX_WATER = 500.0      # литры
+        self.MAX_OSMOS = 50.0       # литры
+        self.MAX_WAX = 5.0          # литры
+        self.MAX_SHAMPOO = 10.0     # литры
         
         # Режимы (расход)
-        # Экспресс (cons)
+
+        # Экспресс
         self.EXPRESS_WATER_CONSUMPTION = 50     # литры
         self.EXPRESS_SHAMPOO_CONSUMPTION = 2    # литры
         
@@ -36,16 +37,14 @@ class RobotWashStation(AbstractCarWash):
         self.PREMIUM_WASH = 1000    # рубли
 
         # Время мойки
-        self.EXPRESS_WASH_TIME = 120
-        self.STANDART_WASH_TIME = 240
-        self.PREMIUM_WASH_TIME =  360
+        self.EXPRESS_WASH_TIME = 120    # минуты
+        self.STANDART_WASH_TIME = 240   # минуты
+        self.PREMIUM_WASH_TIME =  360   # минуты
 
         self.curr_water = curr_water if curr_water is not None else self.MAX_WATER
         self.curr_osmos = curr_osmos if curr_osmos is not None else self.MAX_OSMOS
         self.curr_wax = curr_wax if curr_wax is not None else self.MAX_WAX
         self.curr_shampoo = curr_shampoo if curr_shampoo is not None else self.MAX_SHAMPOO
-
-    # Вспомогательные методы
 
     # Методы для проверок
 
@@ -166,7 +165,7 @@ class RobotWashStation(AbstractCarWash):
 
         return self.get_resources()
 
-    # Методы для клиента =======================
+    # Методы для клиента
 
     # Получить ценник тарифа
     def get_tariff(self, mode: WashMode):
