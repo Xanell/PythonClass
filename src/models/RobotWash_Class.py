@@ -158,25 +158,18 @@ class RobotWashStation(AbstractCarWash):
 
         return self.get_resources()
 
-    # Методы для клиента
+# Методы для клиента
 
-    # Получить ценник тарифа
-    def get_tariff(self, mode: WashMode):
+# Метод определения тарифа и времени в зависимости от выбраного тарифа
+    def get_tariff_and_consumption(self, mode: WashMode) -> tuple[float, float]:
         if mode == WashMode.EXPRESS:
-            return self.EXPRESS_WASH
-        if mode == WashMode.STANDARD:
-            return self.STANDART_WASH
-        if mode == WashMode.PREMIUM:
-            return self.PREMIUM_WASH
-        
-    # Метод получения времени в зависимости от тарифа
-    def get_time(self, mode: WashMode):
-        if mode == WashMode.EXPRESS:
-            return self.EXPRESS_WASH_TIME
-        if mode == WashMode.STANDARD:
-            return self.STANDART_WASH_TIME
-        if mode == WashMode.PREMIUM:
-            return self.PREMIUM_WASH_TIME
+            return self.EXPRESS_WASH, self.EXPRESS_WASH_TIME
+        elif mode == WashMode.STANDARD:
+            return self.STANDART_WASH, self.STANDART_WASH_TIME
+        elif mode == WashMode.PREMIUM:
+            return self.PREMIUM_WASH, self.PREMIUM_WASH_TIME
+        else:
+            return 0.0, 0.0
         
     # Метод списывания ресурсов
     def consumption_resources(self, mode: WashMode):
