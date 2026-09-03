@@ -94,10 +94,10 @@ class RobotWashStation(AbstractCarWash):
     # Получить значения всех ресурсов
     def get_resources(self):
         return {
-            "current_water" : round(self.WATER, 2),
-            "current_osmos" : round(self.OSMOS, 2),
-            "current_wax": round(self.WAX, 2),
-            "current_shampoo": round(self.SHAMPOO, 2)
+            "current_water" : round(self.curr_water, 2),
+            "current_osmos" : round(self.curr_osmos, 2),
+            "current_wax": round(self.curr_wax, 2),
+            "current_shampoo": round(self.curr_shampoo, 2)
         }
     
     # Полная заправка всех ресурсов
@@ -113,13 +113,6 @@ class RobotWashStation(AbstractCarWash):
         self.box_status = BoxStatus.FREE
         return self.get_resources()
 
-    def get_resources(self):
-        return {
-            "current_water" : round(self.curr_water, 2),
-            "current_osmos" : round(self.curr_osmos, 2),
-            "current_wax": round(self.curr_wax, 2),
-            "current_shampoo": round(self.curr_shampoo, 2)
-        }
 
     # Получить текущее значение ресурса
     def get_current_resources(self, resource: ResourceType) -> float:
@@ -150,7 +143,7 @@ class RobotWashStation(AbstractCarWash):
         current = self.get_current_resources(resource)
         if current + amount > max_capacity[resource]:
             error_msg = (f"Нельзя долить больше {max_capacity[resource]}!")
-            self.add_error_history_log(error_msg)
+            self.add_error_history_log(error_msg) # метод логирования ошибок в родителе
             return self.get_error_history_log()
 
         # Доливаем
@@ -249,7 +242,8 @@ class RobotWashStation(AbstractCarWash):
                 self.process_payment(tariff, PaymentType.APP, user)
             else:
                 self.process_payment(tariff, PaymentType.CASH, user=None)
-            self.add_pay_history_log(tariff, time_passed)
+            self.add_pay_history_log(tariff, time_passed) # метод логирования оплаты в родителе
+            
             # Переводим статус
             self.box_status = BoxStatus.FREE
 
