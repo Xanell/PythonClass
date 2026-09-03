@@ -14,34 +14,34 @@ from src.User_Class import User
 
 @pytest.fixture
 def station():
-    """Создает станцию с начальными ресурсами"""
-    return RobotWashStation(1, "ул. Дикий - Дикий Запад, 1", 1)
+    """Создает станцию с ресурсами по умолчанию"""
+    return RobotWashStation(1, "ул. Тестовая, 1", 1)
 
 
 @pytest.fixture
 def station_with_custom_resources():
     """Создает станцию с кастомными ресурсами"""
     return RobotWashStation(
-        id = 1,
-        address = "ул. Дикий - Дикий Запад, 1",
-        box_number = 1,
-        curr_water = 300.0,
-        curr_osmos = 30.0,
-        curr_wax = 2.0,
-        curr_shampoo = 5.0
+        id=1,
+        address="ул. Тестовая, 1",
+        box_number=1,
+        curr_water=300.0,
+        curr_osmos=30.0,
+        curr_wax=2.0,
+        curr_shampoo=5.0
     )
 
 
 @pytest.fixture
 def user():
     """Создает пользователя с балансом"""
-    return User(1, "Софья Констатиновна", 1000.0)
+    return User(1, "Иван Петров", 1000.0)
 
 
 @pytest.fixture
 def poor_user():
     """Создает пользователя с малым балансом"""
-    return User(2, "Неплатежеспособный Иван", 50.0)
+    return User(2, "Бедный Петров", 50.0)
 
 
 @pytest.fixture
@@ -63,14 +63,12 @@ class TestRobotWashStationInit:
         assert station.car_wash_Id == 1
         assert station.box_number == 1
         assert station.box_status == BoxStatus.FREE
-        
-        # Проверка ресурсов по умолчанию (максимумы)
+
         assert station.curr_water == 500.0
         assert station.curr_osmos == 50.0
         assert station.curr_wax == 5.0
         assert station.curr_shampoo == 10.0
-        
-        # Проверка максимальных значений
+
         assert station.MAX_WATER == 500.0
         assert station.MAX_OSMOS == 50.0
         assert station.MAX_WAX == 5.0
@@ -86,16 +84,11 @@ class TestRobotWashStationInit:
 
     def test_init_consumption_values(self, station):
         """Тест: проверка значений расхода"""
-        # Экспресс
         assert station.EXPRESS_WATER_CONSUMPTION == 50
         assert station.EXPRESS_SHAMPOO_CONSUMPTION == 2
-        
-        # Стандарт
         assert station.STANDART_WATER_CONSUMPTION == 70
         assert station.STANDART_SHAMPOO_CONSUMPTION == 3
         assert station.STANDART_OSMOS_CONSUMPTION == 20
-        
-        # Премиум
         assert station.PREMIUM_WATER_CONSUMPTION == 120
         assert station.PREMIUM_SHAMPOO_CONSUMPTION == 5
         assert station.PREMIUM_OSMOS_CONSUMPTION == 30
@@ -208,9 +201,9 @@ class TestRobotWashStationTechnician:
         station.curr_osmos = 10.0
         station.curr_wax = 1.0
         station.curr_shampoo = 2.0
-        
+
         result = station.full_refill()
-        
+
         assert station.curr_water == 500.0
         assert station.curr_osmos == 50.0
         assert station.curr_wax == 5.0
@@ -247,45 +240,46 @@ class TestRobotWashStationTechnician:
 
     def test_refill_resource_success_water(self, station):
         """Тест успешного долива воды"""
-
+        # Устанавливаем воду ниже максимума
         station.curr_water = 300.0
         initial = station.curr_water
-        result = station.refill_resource(ResourceType.WATER, 50.0)
-
         
+        result = station.refill_resource(ResourceType.WATER, 50.0)
+        
+        # Проверяем, что результат - словарь
         assert isinstance(result, dict)
         assert station.curr_water == initial + 50.0
-        assert result.get("current_water") == initial + 50.0
+        assert result["current_water"] == initial + 50.0
 
     def test_refill_resource_success_osmos(self, station):
         """Тест успешного долива осмоса"""
-
-        station.curr_osmos = 1.0
+        station.curr_osmos = 30.0
         initial = station.curr_osmos
-        result = station.refill_resource(ResourceType.OSMOS, 1.0)
-
+        
+        result = station.refill_resource(ResourceType.OSMOS, 10.0)
+        
         assert isinstance(result, dict)
-        assert station.curr_osmos == initial + 1.0
-        assert result["current_osmos"] == initial + 1.0
+        assert station.curr_osmos == initial + 10.0
+        assert result["current_osmos"] == initial + 10.0
 
     def test_refill_resource_success_wax(self, station):
         """Тест успешного долива воска"""
-
         station.curr_wax = 3.0
         initial = station.curr_wax
+        
         result = station.refill_resource(ResourceType.WAX, 1.0)
-
+        
         assert isinstance(result, dict)
         assert station.curr_wax == initial + 1.0
         assert result["current_wax"] == initial + 1.0
 
     def test_refill_resource_success_shampoo(self, station):
         """Тест успешного долива шампуня"""
-
-        station.curr_shampoo = 5.0
+        station.curr_shampoo = 6.0
         initial = station.curr_shampoo
+        
         result = station.refill_resource(ResourceType.SHAMPOO, 2.0)
-
+        
         assert isinstance(result, dict)
         assert station.curr_shampoo == initial + 2.0
         assert result["current_shampoo"] == initial + 2.0
@@ -299,8 +293,8 @@ class TestRobotWashStationTechnician:
     def test_refill_resource_overflow(self, station, resource, amount):
         """Тест: долив с превышением максимума"""
         result = station.refill_resource(resource, amount)
-        # Проверяем, что вернулась ошибка
-        assert isinstance(result, list)  # error_history_log
+        # Проверяем, что вернулась ошибка (список ошибок)
+        assert isinstance(result, list)
         assert len(result) > 0
 
 
@@ -311,36 +305,42 @@ class TestRobotWashStationTechnician:
 class TestRobotWashStationClient:
     """Тесты для клиента"""
 
-    def test_get_tariff_express(self, station):
-        """Тест получения цены Экспресс"""
-        assert station.get_tariff(WashMode.EXPRESS) == 300
+    def test_get_tariff_and_time_express(self, station):
+        """Тест получения тарифа и времени для Экспресс"""
+        tariff, time = station.get_tariff_and_time(WashMode.EXPRESS)
+        assert tariff == 300
+        assert time == 120
 
-    def test_get_tariff_standard(self, station):
-        """Тест получения цены Стандарт"""
-        assert station.get_tariff(WashMode.STANDARD) == 500
+    def test_get_tariff_and_time_standard(self, station):
+        """Тест получения тарифа и времени для Стандарт"""
+        tariff, time = station.get_tariff_and_time(WashMode.STANDARD)
+        assert tariff == 500
+        assert time == 240
 
-    def test_get_tariff_premium(self, station):
-        """Тест получения цены Премиум"""
-        assert station.get_tariff(WashMode.PREMIUM) == 1000
+    def test_get_tariff_and_time_premium(self, station):
+        """Тест получения тарифа и времени для Премиум"""
+        tariff, time = station.get_tariff_and_time(WashMode.PREMIUM)
+        assert tariff == 1000
+        assert time == 360
 
-    def test_get_tariff_unknown(self, station):
-        """Тест получения цены неизвестного режима"""
+    def test_get_tariff_and_time_unknown(self, station):
+        """Тест получения тарифа для неизвестного режима"""
         class UnknownMode:
             pass
-        result = station.get_tariff(UnknownMode())  # type: ignore
-        assert result is None
+        tariff, time = station.get_tariff_and_time(UnknownMode())  # type: ignore
+        assert tariff == 0.0
+        assert time == 0.0
 
-    def test_get_time_express(self, station):
-        """Тест получения времени Экспресс"""
-        assert station.get_time(WashMode.EXPRESS) == 120
-
-    def test_get_time_standard(self, station):
-        """Тест получения времени Стандарт"""
-        assert station.get_time(WashMode.STANDARD) == 240
-
-    def test_get_time_premium(self, station):
-        """Тест получения времени Премиум"""
-        assert station.get_time(WashMode.PREMIUM) == 360
+    @pytest.mark.parametrize("mode, expected_tariff, expected_time", [
+        (WashMode.EXPRESS, 300, 120),
+        (WashMode.STANDARD, 500, 240),
+        (WashMode.PREMIUM, 1000, 360),
+    ])
+    def test_get_tariff_and_time_parametrize(self, station, mode, expected_tariff, expected_time):
+        """Тест: параметризованная проверка всех режимов"""
+        tariff, time = station.get_tariff_and_time(mode)
+        assert tariff == expected_tariff
+        assert time == expected_time
 
     def test_consumption_resources_express(self, station):
         """Тест списания ресурсов для Экспресс"""
@@ -392,16 +392,16 @@ class TestRobotWashStationClient:
         """Тест успешной проверки оплаты наличными"""
         station.validate_cash_payment(500.0, 300.0)
 
-    @pytest.mark.parametrize("cash_amount, tariff", [
-        (0.0, 300.0),
-        (-100.0, 300.0),
-        (100.0, 300.0),
+    @pytest.mark.parametrize("cash_amount, tariff, expected_error", [
+        (0.0, 300.0, "положительной"),
+        (-100.0, 300.0, "положительной"),
+        (100.0, 300.0, "Недостаточно средств"),
     ])
-    def test_validate_cash_payment_invalid(self, station, cash_amount, tariff):
+    def test_validate_cash_payment_invalid(self, station, cash_amount, tariff, expected_error):
         """Тест: неверная сумма наличных"""
         with pytest.raises(ValueError) as exc:
             station.validate_cash_payment(cash_amount, tariff)
-        assert "Недостаточно средств" in str(exc.value) or "положительной" in str(exc.value)
+        assert expected_error in str(exc.value)
 
 
 # ============================================
@@ -428,7 +428,7 @@ class TestRobotWashStationStartWash:
         assert result["status"] == BoxStatus.FREE
         assert result["time"] == 120
         assert result["total_price"] == 300
-        
+
         assert user.balance == initial_balance - 300
         assert full_station.curr_water == initial_water - 50
         assert full_station.curr_shampoo == initial_shampoo - 2
@@ -450,7 +450,7 @@ class TestRobotWashStationStartWash:
         assert result["message"] == "Мойка успешно завершена"
         assert result["time"] == 240
         assert result["total_price"] == 500
-        
+
         assert user.balance == initial_balance - 500
         assert full_station.curr_water == initial_water - 70
         assert full_station.curr_shampoo == initial_shampoo - 3
@@ -473,7 +473,7 @@ class TestRobotWashStationStartWash:
         assert result["message"] == "Мойка успешно завершена"
         assert result["time"] == 360
         assert result["total_price"] == 1000
-        
+
         assert user.balance == initial_balance - 1000
         assert full_station.curr_water == initial_water - 120
         assert full_station.curr_shampoo == initial_shampoo - 5
@@ -646,7 +646,7 @@ class TestRobotWashStationEdgeCases:
 
 
 # ============================================
-# 8. ТЕСТЫ СТАТИСТИКИ
+# 8. ТЕСТЫ СТАТИСТИКИ И БЕЗОПАСНОСТИ
 # ============================================
 
 class TestRobotWashStationStatistics:
@@ -657,17 +657,19 @@ class TestRobotWashStationStatistics:
         stats = full_station.get_statistics()
 
         assert stats["box_number"] == 1
-        assert stats["address"] == "ул. Дикий - Дикий Запад, 1"
+        assert stats["address"] == "ул. Тестовая, 1"
         assert stats["cash_box"] == 0.0
         assert stats["total_revenue"] == 0.0
         assert stats["total_washes"] == 0
         assert "current_water" in stats["resources"]
         assert "current_osmos" in stats["resources"]
 
+    def test_error_history_log(self, station):
+        """Тест лога ошибок"""
+        station.add_error_history_log("Тестовая ошибка")
+        assert len(station.error_history_log) == 1
+        assert station.error_history_log[0] == "Тестовая ошибка"
 
-# ============================================
-# 9. ТЕСТЫ БЕЗОПАСНОСТИ
-# ============================================
 
 class TestRobotWashStationSecurity:
     """Тесты безопасности"""
