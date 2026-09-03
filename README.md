@@ -17,29 +17,30 @@
 ---
 
 ## Структура проекта
+```
 src/
 ├── CarWash/
-│ ├── Boxes/
-│ │ ├── init.py
-│ │ ├── AbstractCarWash.py # Абстрактный базовый класс
-│ │ ├── StandartWashBox.py # Ручной бокс
-│ │ └── RobotWashBox.py # Роботизированный бокс
-│ ├── Manager/
-│ │ ├── init.py
-│ │ └── CarWashManager.py # Менеджер управления боксами
-│ ├── User/
-│ │ ├── init.py
-│ │ └── User.py # Класс пользователя
-│ └── Utils/
-│ ├── init.py
-│ └── Enums.py # Перечисления (статусы, ресурсы, оплата)
-├── main.py # (опционально) точка входа
-└── tests/ # Тесты (pytest)
-├── test_AbstractCarWash.py
-├── test_CarWash_Class.py
-├── test_CarWashManager.py
-└── test_RobotWash_Class.py
-
+│   ├── Boxes/
+│   │   ├── __init__.py
+│   │   ├── AbstractCarWash.py          # Абстрактный базовый класс
+│   │   ├── StandartWashBox.py          # Ручной бокс
+│   │   └── RobotWashBox.py             # Роботизированный бокс
+│   ├── Manager/
+│   │   ├── __init__.py
+│   │   └── CarWashManager.py           # Менеджер управления боксами
+│   ├── User/
+│   │   ├── __init__.py
+│   │   └── User.py                     # Класс пользователя
+│   └── Utils/
+│       ├── __init__.py
+│       └── Enums.py                    # Перечисления (статусы, ресурсы, оплата)
+├── __main__.py                         # (опционально) точка входа
+└── tests/                              # Тесты (pytest)
+    ├── test_AbstractCarWash.py
+    ├── test_CarWash_Class.py
+    ├── test_CarWashManager.py
+    └── test_RobotWash_Class.py
+```
 ---
 
 ### Классы
