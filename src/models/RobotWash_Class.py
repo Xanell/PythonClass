@@ -41,6 +41,7 @@ class RobotWashStation(AbstractCarWash):
         self.STANDART_WASH_TIME = 240   # минуты
         self.PREMIUM_WASH_TIME =  360   # минуты
 
+        # Значения ресурсов по умолчанию
         self.curr_water = curr_water if curr_water is not None else self.MAX_WATER
         self.curr_osmos = curr_osmos if curr_osmos is not None else self.MAX_OSMOS
         self.curr_wax = curr_wax if curr_wax is not None else self.MAX_WAX
@@ -88,11 +89,11 @@ class RobotWashStation(AbstractCarWash):
             return self.check_premium()
         return False
     
-
     # Методы для техника
 
     # Получить значения всех ресурсов
     def get_resources(self):
+
         return {
             "current_water" : round(self.curr_water, 2),
             "current_osmos" : round(self.curr_osmos, 2),
@@ -158,10 +159,10 @@ class RobotWashStation(AbstractCarWash):
 
         return self.get_resources()
 
-# Методы для клиента
+    # Методы для клиента
 
-# Метод определения тарифа и времени в зависимости от выбраного тарифа
-    def get_tariff_and_consumption(self, mode: WashMode) -> tuple[float, float]:
+    # Метод определения тарифа и времени в зависимости от выбраного тарифа
+    def get_tariff_and_time(self, mode: WashMode) -> tuple[float, float]:
         if mode == WashMode.EXPRESS:
             return self.EXPRESS_WASH, self.EXPRESS_WASH_TIME
         elif mode == WashMode.STANDARD:
@@ -206,15 +207,15 @@ class RobotWashStation(AbstractCarWash):
 
     # Запуск мойки
     def start_wash_session(self, mode: WashMode, payment_type: PaymentType, user: User = None, cash_amount: float = 0.0) -> dict:
+
         try:
             # Проверка статуса
             if self.box_status != BoxStatus.FREE:
                 raise ValueError (f"Бокс № {self.box_number} недоступен!")
             
-            # Проверка ресурсов
+            # Проверка ресурсов, тарифа, времени
             self.check_resources(mode)
-            tariff = self.get_tariff(mode)
-            time_passed = self.get_time(mode)
+            tariff, time_passed = self.get_tariff_and_time(mode)
 
             # Предварительные проверки в зависимости от типа оплаты
             if payment_type == PaymentType.APP:
@@ -248,6 +249,7 @@ class RobotWashStation(AbstractCarWash):
                 "total_price": tariff, 
                 "remaining_balance": round(user.balance, 2) if user else None
             }
+        
         except ValueError as error:
             self.add_error_history_log(error)
             return{
