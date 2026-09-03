@@ -1,6 +1,6 @@
-from src.config.Enums import BoxStatus, ResourceType, WashMode, PaymentType
-from src.core.AbstractCarWash import AbstractCarWash
-from src.User_Class import User
+from src.CarWash.Utils import BoxStatus, ResourceType, WashMode, PaymentType
+from src.CarWash.Boxes import AbstractCarWash
+from src.CarWash.User import User
 
 # Основной класс
 class RobotWashStation(AbstractCarWash):

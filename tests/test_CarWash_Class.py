@@ -1,7 +1,7 @@
 import pytest
-from src.models.CarWash_Class import StandartWashBox
-from src.User_Class import User
-from src.config.Enums import BoxStatus, PaymentType, ResourceType
+from src.CarWash.Boxes import StandartWashBox
+from src.CarWash.User import User
+from src.CarWash.Utils import BoxStatus, PaymentType, ResourceType
 
 
 # ---------- Фикстуры ----------

@@ -7,9 +7,9 @@ tests_dir = os.path.dirname(__file__)
 project_root = os.path.dirname(tests_dir)
 sys.path.append(project_root)
 
-from src.config.Enums import BoxStatus, ResourceType, WashMode, PaymentType
-from src.models.RobotWash_Class import RobotWashStation
-from src.User_Class import User
+from src.CarWash.Utils import BoxStatus, ResourceType, WashMode, PaymentType
+from src.CarWash.Boxes import RobotWashStation
+from src.CarWash.User import User
 
 
 @pytest.fixture

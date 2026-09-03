@@ -1,6 +1,6 @@
-from src.core.AbstractCarWash import AbstractCarWash
-from src.config.Enums import BoxStatus, ResourceType, PaymentType 
-from src.User_Class import User
+from src.CarWash.Boxes import AbstractCarWash
+from src.CarWash.Utils import BoxStatus, ResourceType, PaymentType 
+from src.CarWash.User import User
 
 class StandartWashBox(AbstractCarWash) : 
     def __init__(self, id: int, address: str, box_number: int, curr_foam: float = None, curr_wax: float = None):

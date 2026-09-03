@@ -1,5 +1,5 @@
-from src.core.AbstractCarWash import AbstractCarWash
-from src.config.Enums import BoxStatus
+from src.CarWash.Boxes import AbstractCarWash
+from src.CarWash.Utils import BoxStatus
 
 class CarWashManager:
     def __init__(self):

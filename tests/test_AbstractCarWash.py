@@ -1,7 +1,7 @@
 import pytest
-from src.core.AbstractCarWash import AbstractCarWash
-from src.config.Enums import BoxStatus, PaymentType
-from src.User_Class import User
+from src.CarWash.Boxes import AbstractCarWash
+from src.CarWash.Utils import BoxStatus, PaymentType
+from src.CarWash.User import User
 
 # Тестовый подкласс, реализующий абстрактный метод
 class DummyCarWash(AbstractCarWash):

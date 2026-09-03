@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from src.config.Enums import BoxStatus, PaymentType 
-from src.User_Class import User
+from src.CarWash.Utils import BoxStatus, PaymentType 
+from src.CarWash.User import User
 
 class AbstractCarWash(ABC): 
     def __init__(self, id: int, address: str, box_number: int): 

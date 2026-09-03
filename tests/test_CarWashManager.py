@@ -1,7 +1,7 @@
 import pytest
-from src.CarWashManager import CarWashManager
-from src.core.AbstractCarWash import AbstractCarWash
-from src.config.Enums import BoxStatus
+from src.CarWash.Manager import CarWashManager
+from src.CarWash.Boxes import AbstractCarWash
+from src.CarWash.Utils import BoxStatus
 
 # Заглушка бокса для тестирования менеджера
 class DummyBox(AbstractCarWash):
