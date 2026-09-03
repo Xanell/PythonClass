@@ -1,6 +1,4 @@
 from src.core.AbstractCarWash import AbstractCarWash
-from src.models.CarWash_Class import StandartWashBox
-from src.models.RobotWash_Class import RobotWashStation
 from src.config.Enums import BoxStatus
 
 class CarWashManager:
