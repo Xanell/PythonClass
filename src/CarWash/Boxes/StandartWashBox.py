@@ -1,9 +1,9 @@
-from src.CarWash.Boxes import AbstractCarWash
-from src.CarWash.Utils import BoxStatus, ResourceType, PaymentType 
-from src.CarWash.User import User
+from CarWash.Boxes import AbstractCarWash
+from CarWash.Utils import BoxStatus, ResourceType, PaymentType 
+from CarWash.User import User
 
 class StandartWashBox(AbstractCarWash) : 
-    def __init__(self, id: int, address: str, box_number: int, curr_foam: float = None, curr_wax: float = None):
+    def __init__(self, id: int, address: str, box_number: int):
         super().__init__(id, address, box_number)
         # Константы максимальная вместимость баков
         self.MAX_FOAM = 50.0
@@ -16,8 +16,8 @@ class StandartWashBox(AbstractCarWash) :
         self.FOAM_CONSUMPTION_PER_SEC = 0.4
         self.WAX_CONSUMPTION_PER_SEC = 0.5
         # Проверяем текущее состояние остатков мыла и воска, если они не переданы, то баки полные по дефолту и имеют значение 50, 10
-        self.current_foam = curr_foam if curr_foam is not None else self.MAX_FOAM
-        self.current_wax = curr_wax if curr_wax is not None else self.MAX_WAX
+        self.current_foam = self.MAX_FOAM
+        self.current_wax = self.MAX_WAX
 
     # Метод залития мыла в баки
     def restock_foam(self, foam_liters: float) -> dict[str, any] :

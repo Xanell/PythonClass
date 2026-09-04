@@ -1,11 +1,11 @@
-from src.CarWash.Utils import BoxStatus, ResourceType, WashMode, PaymentType
-from src.CarWash.Boxes import AbstractCarWash
-from src.CarWash.User import User
+from CarWash.Utils import BoxStatus, ResourceType, WashMode, PaymentType
+from CarWash.Boxes import AbstractCarWash
+from CarWash.User import User
 
 # Основной класс
 class RobotWashStation(AbstractCarWash):
 
-    def __init__(self, id: int, address: str, box_number: int, curr_water: float = None, curr_osmos: float = None, curr_wax: float = None, curr_shampoo: float = None):
+    def __init__(self, id: int, address: str, box_number: int):
         super().__init__(id, address, box_number)
         
         # Максимальные значения ресурсов
@@ -42,10 +42,10 @@ class RobotWashStation(AbstractCarWash):
         self.PREMIUM_WASH_TIME =  360   # минуты
 
         # Значения ресурсов по умолчанию
-        self.curr_water = curr_water if curr_water is not None else self.MAX_WATER
-        self.curr_osmos = curr_osmos if curr_osmos is not None else self.MAX_OSMOS
-        self.curr_wax = curr_wax if curr_wax is not None else self.MAX_WAX
-        self.curr_shampoo = curr_shampoo if curr_shampoo is not None else self.MAX_SHAMPOO
+        self.curr_water = self.MAX_WATER
+        self.curr_osmos = self.MAX_OSMOS
+        self.curr_wax = self.MAX_WAX
+        self.curr_shampoo = self.MAX_SHAMPOO
 
     # Методы для проверок
 
@@ -106,10 +106,10 @@ class RobotWashStation(AbstractCarWash):
 
         self.box_status = BoxStatus.MAINTENANCE
         
-        self.curr_water = 500.0
-        self.curr_osmos = 50.0
-        self.curr_wax = 5.0
-        self.curr_shampoo = 10.0
+        self.curr_water = self.MAX_WATER
+        self.curr_osmos = self.MAX_OSMOS
+        self.curr_wax = self.MAX_WAX
+        self.curr_shampoo = self.MAX_SHAMPOO
         
         self.box_status = BoxStatus.FREE
         return self.get_resources()

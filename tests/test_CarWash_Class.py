@@ -7,44 +7,37 @@ from src.CarWash.Utils import BoxStatus, PaymentType, ResourceType
 # ---------- Фикстуры ----------
 @pytest.fixture
 def wash_box():
-    """Создаёт бокс с полностью заполненными баками."""
+    """Создаёт бокс с полностью заполненными баками (значения по умолчанию)."""
     return StandartWashBox(
         id=1,
         address="ул. Ленина, 1",
-        box_number=1,
-        curr_foam=50.0,
-        curr_wax=10.0
+        box_number=1
     )
 
 
 @pytest.fixture
 def empty_wash_box():
-    """Создаёт бокс с пустыми баками."""
-    return StandartWashBox(
+    """Создаёт бокс и принудительно опустошает баки."""
+    box = StandartWashBox(
         id=2,
         address="ул. Ленина, 2",
-        box_number=2,
-        curr_foam=0.0,
-        curr_wax=0.0
+        box_number=2
     )
+    box.current_foam = 0.0
+    box.current_wax = 0.0
+    return box
 
 
 @pytest.fixture
 def user_with_balance():
-    """Создаёт объект пользователя с балансом."""
-    class User:
-        def __init__(self, balance):
-            self.balance = balance
-    return User(balance=500.0)
+    """Создаёт пользователя с достаточным балансом."""
+    return User(user_id=1, user_name="Test", initial_balance=500.0)
 
 
 @pytest.fixture
 def user_with_low_balance():
     """Создаёт пользователя с недостаточным балансом."""
-    class User:
-        def __init__(self, balance):
-            self.balance = balance
-    return User(balance=10.0)
+    return User(user_id=2, user_name="Test", initial_balance=10.0)
 
 
 # ---------- Тесты для get_resources ----------
@@ -113,7 +106,7 @@ def test_restock_wax_overflow(empty_wash_box):
 # ---------- Тесты для get_tariff_and_consumption ----------
 @pytest.mark.parametrize("mode, expected_tariff, expected_consumption", [
     (ResourceType.WATER, 0.15, 0.0),
-    (ResourceType.FOAM, 0.40, 0.4),   # расход уточнить по реальной реализации
+    (ResourceType.FOAM, 0.40, 0.4),
     (ResourceType.WAX, 0.30, 0.5),
 ])
 def test_get_tariff_and_consumption(wash_box, mode, expected_tariff, expected_consumption):
@@ -127,7 +120,6 @@ def test_check_resources_sufficient(wash_box):
     """Ресурсов достаточно — метод выполняется без ошибок."""
     mode = ResourceType.FOAM
     consumption = 10.0
-    # Метод ничего не возвращает, просто не бросает исключение
     wash_box.check_resources(mode, consumption)
 
 
@@ -155,7 +147,6 @@ def test_validate_app_payment_success(user_with_balance):
     box = StandartWashBox(id=3, address="ул. Ленина, 3", box_number=3)
     duration = 60
     tariff = 0.40
-    # Метод не возвращает значение, при успехе просто завершается без исключения
     box.validate_app_payment(user_with_balance, tariff, duration)
 
 
@@ -170,10 +161,9 @@ def test_validate_app_payment_insufficient(user_with_low_balance):
 
 # ---------- Тесты для validate_cash_payment ----------
 def test_validate_cash_payment_success():
-    """Внесённой суммы достаточно (минимальная сумма не указана, считаем, что достаточно любой >0)."""
+    """Внесённой суммы достаточно (любая >0)."""
     box = StandartWashBox(id=5, address="ул. Ленина, 5", box_number=5)
-    cash = 100.0
-    box.validate_cash_payment(cash)  # не должно быть исключения
+    box.validate_cash_payment(100.0)
 
 
 def test_validate_cash_payment_insufficient():
@@ -233,17 +223,13 @@ def test_start_wash_session_app_insufficient_resources(empty_wash_box, user_with
         duration_seconds=duration
     )
 
-    # Ресурс не изменился
     assert empty_wash_box.current_foam == initial_foam
-    # Баланс не изменился
     assert user_with_balance.balance == pytest.approx(initial_balance)
-    # Возвращён словарь с ошибкой
     assert result["message"] == "Мойка принудительно остановлена"
     assert result["time"] == 0
     assert result["total_price"] == 0.0
     assert "error" in result
     assert isinstance(result["error"], ValueError)
-    # Проверяем, что ошибка связана с ресурсами (можно уточнить текст)
     assert empty_wash_box.box_status == BoxStatus.MAINTENANCE
 
 
@@ -284,9 +270,7 @@ def test_start_wash_session_cash_insufficient_resources(empty_wash_box):
         payment_type=PaymentType.CASH,
         cash_amount=50.0
     )
-    # Ресурс не изменился
     assert empty_wash_box.current_foam == initial_foam
-    # Возвращён словарь с ошибкой, время 0, цена 0
     assert result["message"] == "Мойка принудительно остановлена"
     assert result["time"] == 0
     assert result["total_price"] == 0.0
@@ -306,9 +290,7 @@ def test_start_wash_session_cash_stops_by_resource(wash_box):
         cash_amount=cash_amount
     )
 
-    # Ресурс должен быть полностью израсходован
     assert wash_box.current_foam == pytest.approx(0.0)
-    # Время мойки должно соответствовать расходу ресурса
     expected_time = initial_foam / consumption
     assert result["time"] == pytest.approx(expected_time)
     assert result["total_price"] == pytest.approx(expected_time * 0.40)
@@ -321,7 +303,6 @@ def test_restock_sets_maintenance(wash_box):
     wash_box.restock_foam(10)
     assert wash_box.box_status == BoxStatus.MAINTENANCE
 
-    # Проверим, что при статусе MAINTENANCE запуск мойки выбрасывает ошибку
     user = User(user_id=3, user_name="Test", initial_balance=1000.0)
     with pytest.raises(ValueError, match="Бокс №1 недоступен!"):
         wash_box.start_wash_session(

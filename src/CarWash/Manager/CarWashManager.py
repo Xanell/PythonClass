@@ -1,5 +1,5 @@
-from src.CarWash.Boxes import AbstractCarWash
-from src.CarWash.Utils import BoxStatus
+from CarWash.Boxes import AbstractCarWash
+from CarWash.Utils import BoxStatus
 
 class CarWashManager:
     def __init__(self):

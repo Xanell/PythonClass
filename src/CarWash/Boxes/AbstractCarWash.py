@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from src.CarWash.Utils import BoxStatus, PaymentType 
-from src.CarWash.User import User
+from CarWash.Utils import BoxStatus, PaymentType 
+from CarWash.User import User
 
 class AbstractCarWash(ABC): 
     def __init__(self, id: int, address: str, box_number: int): 
@@ -15,6 +15,9 @@ class AbstractCarWash(ABC):
         self.pay_history_log = {}
         self.statistics_log = {}
         self.error_history_log = []
+
+    def __repr__ (self):
+        return f"<{self.__class__.__name__}, box_number = {self.box_number}, box_status = {self.box_status.value}"
 
     @abstractmethod
     def get_resources(self):

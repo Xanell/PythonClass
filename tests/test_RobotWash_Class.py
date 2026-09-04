@@ -74,14 +74,6 @@ class TestRobotWashStationInit:
         assert station.MAX_WAX == 5.0
         assert station.MAX_SHAMPOO == 10.0
 
-    def test_init_custom_resources(self, station_with_custom_resources):
-        """Тест: инициализация с кастомными ресурсами"""
-        station = station_with_custom_resources
-        assert station.curr_water == 300.0
-        assert station.curr_osmos == 30.0
-        assert station.curr_wax == 2.0
-        assert station.curr_shampoo == 5.0
-
     def test_init_consumption_values(self, station):
         """Тест: проверка значений расхода"""
         assert station.EXPRESS_WATER_CONSUMPTION == 50
